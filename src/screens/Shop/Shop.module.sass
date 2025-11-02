@@ -92,3 +92,51 @@
         margin-top: 32px
     +m
         margin-top: 24px
+
+.followers
+    display: flex
+    flex-wrap: wrap
+    margin: -32px -12px 0
+    +a
+        display: block
+        margin: 0
+
+.follower
+    flex: 0 0 calc(33.333% - 24px)
+    width: calc(33.333% - 24px)
+    margin: 32px 12px 0
+    +t
+        flex: 0 0 calc(50% - 24px)
+        width: calc(50% - 24px)
+    +a
+        width: 100%
+        margin: 24px 0 0
+
+.loading,
+.error,
+.empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: 60px 20px
+    text-align: center
+    min-height: 400px
+    p
+        +body1-m
+        color: $n4
+        margin-top: 16px
+    button
+        margin-top: 16px
+
+.error
+    p
+        color: $n6
+        +dark
+            color: $n3
+
+.empty
+    min-height: 300px
+    width: 100%
+    p
+        color: $n5

@@ -10,8 +10,8 @@ import Product from "../../components/Product";
 import Follower from "./Follower";
 import Loader from "../../components/Loader";
 import { getAllProducts } from "../../services/productService";
-import { getAllCustomers } from "../../services/customerService";
 import { getAllComments } from "../../services/commentService";
+import { getFollowedCreators, getAllCreators } from "../../services/creatorService";
 
 const navigation = ["Products", "Followers", "Following"];
 const intervals = ["Most recent", "Most new", "Most popular"];
@@ -40,8 +40,10 @@ const Shop = () => {
     try {
       if (activeIndex === 0) {
         await fetchProducts(1);
+      } else if (activeIndex === 1) {
+        await fetchFollowers(1);
       } else {
-        await fetchCustomers(1);
+        await fetchFollowing(1);
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred");
@@ -132,45 +134,98 @@ const Shop = () => {
     }
   };
 
-  const fetchCustomers = async (pageNum) => {
+  const fetchFollowers = async (pageNum) => {
     try {
-      const { data, error } = await getAllCustomers({
+      // For "Followers" tab - get all creators sorted by followers count
+      const { data, error } = await getAllCreators({
         limit: ITEMS_PER_PAGE,
         offset: (pageNum - 1) * ITEMS_PER_PAGE,
+        sortBy: 'followers'
       });
 
       if (error) {
-        setError(error.message || "Failed to fetch customers");
-        console.error("Error fetching customers:", error);
+        setError(error.message || "Failed to fetch followers");
+        console.error("Error fetching followers:", error);
       } else {
-        const transformedData = data?.map((customer) => ({
-          id: customer.id,
-          name: customer.name || "Unknown User",
-          avatar: customer.avatar_url || "/images/content/avatar.jpg",
-          code: customer.email || "",
-          category: "Customer",
-          products: customer.order_count || 0,
-        })) || [];
+        const transformedData = data?.map((creator) => {
+          // Get up to 3 product images for gallery
+          const gallery = creator.products
+            ?.slice(0, 3)
+            .map(product => ({
+              image: product.image_url || "/images/content/product-pic-1.jpg",
+              image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
+            })) || [];
+
+          return {
+            id: creator.id,
+            name: creator.name || "Unknown Creator",
+            avatar: creator.avatar_url || "/images/content/avatar.jpg",
+            products: creator.products?.length || 0,
+            followers: creator.followers || 0,
+            gallery: gallery,
+            message: true,
+          };
+        }) || [];
 
         if (pageNum === 1) {
-          if (activeIndex === 1) {
-            setFollowers(transformedData);
-          } else {
-            setFollowing(transformedData);
-          }
+          setFollowers(transformedData);
         } else {
-          if (activeIndex === 1) {
-            setFollowers(prev => [...prev, ...transformedData]);
-          } else {
-            setFollowing(prev => [...prev, ...transformedData]);
-          }
+          setFollowers(prev => [...prev, ...transformedData]);
         }
 
         setHasMore(transformedData.length === ITEMS_PER_PAGE);
       }
     } catch (err) {
       setError(err.message || "An unexpected error occurred");
-      console.error("Error fetching customers:", err);
+      console.error("Error fetching followers:", err);
+    }
+  };
+
+  const fetchFollowing = async (pageNum) => {
+    try {
+      // For "Following" tab - get creators that the user follows
+      const { data, error } = await getFollowedCreators();
+
+      if (error) {
+        setError(error.message || "Failed to fetch following");
+        console.error("Error fetching following:", error);
+      } else {
+        const transformedData = data?.map((creator) => {
+          // Get up to 3 product images for gallery
+          const gallery = creator.products
+            ?.slice(0, 3)
+            .map(product => ({
+              image: product.image_url || "/images/content/product-pic-1.jpg",
+              image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
+            })) || [];
+
+          return {
+            id: creator.id,
+            name: creator.name || "Unknown Creator",
+            avatar: creator.avatar_url || "/images/content/avatar.jpg",
+            products: creator.products?.length || 0,
+            followers: creator.followers || 0,
+            gallery: gallery,
+            message: true,
+          };
+        }) || [];
+
+        // Paginate the data manually since getFollowedCreators returns all
+        const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        const paginatedData = transformedData.slice(startIndex, endIndex);
+
+        if (pageNum === 1) {
+          setFollowing(paginatedData);
+        } else {
+          setFollowing(prev => [...prev, ...paginatedData]);
+        }
+
+        setHasMore(endIndex < transformedData.length);
+      }
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+      console.error("Error fetching following:", err);
     }
   };
 
@@ -180,8 +235,10 @@ const Shop = () => {
 
     if (activeIndex === 0) {
       await fetchProducts(nextPage);
+    } else if (activeIndex === 1) {
+      await fetchFollowers(nextPage);
     } else {
-      await fetchCustomers(nextPage);
+      await fetchFollowing(nextPage);
     }
   };
 

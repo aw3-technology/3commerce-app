@@ -139,3 +139,44 @@ CREATE TRIGGER update_social_posts_updated_at BEFORE UPDATE ON social_posts
 
 CREATE TRIGGER update_promotion_insights_updated_at BEFORE UPDATE ON promotion_insights
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Create storage buckets for post images and videos
+INSERT INTO storage.buckets (id, name, public)
+VALUES
+    ('post-images', 'post-images', true),
+    ('videos', 'videos', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies for post-images bucket
+CREATE POLICY "Post images are publicly accessible"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'post-images');
+
+CREATE POLICY "Authenticated users can upload post images"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'post-images' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update their post images"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'post-images' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Users can delete their post images"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'post-images' AND auth.role() = 'authenticated');
+
+-- Storage policies for videos bucket
+CREATE POLICY "Videos are publicly accessible"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'videos');
+
+CREATE POLICY "Authenticated users can upload videos"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'videos' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Users can update their videos"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'videos' AND auth.role() = 'authenticated');
+
+CREATE POLICY "Users can delete their videos"
+ON storage.objects FOR DELETE
+USING (bucket_id = 'videos' AND auth.role() = 'authenticated');

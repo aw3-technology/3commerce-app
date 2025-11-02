@@ -58,23 +58,71 @@ const NewPost = ({ onPostCreated }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate file type
+    const isVideo = fileType === "video-stroke";
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm'];
+
+    if (isVideo && !validVideoTypes.includes(file.type)) {
+      setError("Invalid video type. Please upload MP4, MPEG, MOV, or WebM video.");
+      e.target.value = '';
+      return;
+    }
+
+    if (!isVideo && !validImageTypes.includes(file.type)) {
+      setError("Invalid image type. Please upload JPEG, PNG, GIF, or WebP image.");
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file size (max 10MB for images, 50MB for videos)
+    const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError(`File is too large. Maximum size is ${isVideo ? '50MB' : '10MB'}.`);
+      e.target.value = '';
+      return;
+    }
+
     setUploading(true);
     setError("");
 
     try {
-      // In a real app, you would upload to a storage service (like Supabase Storage)
-      // For now, we'll create a local URL
-      const imageUrl = URL.createObjectURL(file);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      // Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const bucketName = isVideo ? 'videos' : 'post-images';
+      const filePath = `${bucketName}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucketName)
+        .getPublicUrl(filePath);
+
       setPostData((prev) => ({
         ...prev,
-        image_url: imageUrl,
-        post_type: fileType === "video-stroke" ? "video" : "picture",
+        image_url: publicUrl,
+        post_type: isVideo ? "video" : "picture",
       }));
     } catch (err) {
-      setError("Failed to upload file");
+      setError(err.message || "Failed to upload file");
       console.error("Upload error:", err);
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
