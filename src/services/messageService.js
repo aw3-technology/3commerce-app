@@ -10,21 +10,10 @@ import supabase from '../config/supabaseClient';
  */
 export const getConversations = async (userId) => {
   try {
+    // Simply get messages without trying to join with auth.users
     const { data, error } = await supabase
       .from('messages')
-      .select(`
-        id,
-        sender_id,
-        recipient_id,
-        customer_id,
-        subject,
-        content,
-        read,
-        created_at,
-        sender:sender_id(id, email, raw_user_meta_data),
-        recipient:recipient_id(id, email, raw_user_meta_data),
-        customer:customer_id(id, name, email, avatar_url)
-      `)
+      .select('*')
       .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
       .order('created_at', { ascending: false });
 
@@ -41,7 +30,7 @@ export const getConversations = async (userId) => {
           new Date(message.created_at) > new Date(conversations[partnerId].created_at)) {
         conversations[partnerId] = {
           ...message,
-          partner: message.sender_id === userId ? message.recipient : message.sender,
+          partnerId: partnerId,
           unread: !message.read && message.recipient_id === userId,
         };
       }
@@ -50,7 +39,7 @@ export const getConversations = async (userId) => {
     return { data: Object.values(conversations), error: null };
   } catch (error) {
     console.error('Error fetching conversations:', error);
-    return { data: null, error };
+    return { data: [], error };
   }
 };
 
@@ -62,20 +51,10 @@ export const getConversations = async (userId) => {
  */
 export const getConversationMessages = async (userId, partnerId) => {
   try {
+    // Get messages without trying to join with auth.users
     const { data, error } = await supabase
       .from('messages')
-      .select(`
-        id,
-        sender_id,
-        recipient_id,
-        customer_id,
-        subject,
-        content,
-        read,
-        created_at,
-        sender:sender_id(id, email, raw_user_meta_data),
-        recipient:recipient_id(id, email, raw_user_meta_data)
-      `)
+      .select('*')
       .or(`and(sender_id.eq.${userId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${userId})`)
       .order('created_at', { ascending: true });
 
@@ -84,7 +63,7 @@ export const getConversationMessages = async (userId, partnerId) => {
     return { data, error: null };
   } catch (error) {
     console.error('Error fetching conversation messages:', error);
-    return { data: null, error };
+    return { data: [], error };
   }
 };
 
@@ -200,18 +179,7 @@ export const searchMessages = async (userId, searchTerm) => {
   try {
     const { data, error } = await supabase
       .from('messages')
-      .select(`
-        id,
-        sender_id,
-        recipient_id,
-        customer_id,
-        subject,
-        content,
-        read,
-        created_at,
-        sender:sender_id(id, email, raw_user_meta_data),
-        recipient:recipient_id(id, email, raw_user_meta_data)
-      `)
+      .select('*')
       .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
       .ilike('content', `%${searchTerm}%`)
       .order('created_at', { ascending: false })
@@ -222,7 +190,7 @@ export const searchMessages = async (userId, searchTerm) => {
     return { data, error: null };
   } catch (error) {
     console.error('Error searching messages:', error);
-    return { data: null, error };
+    return { data: [], error };
   }
 };
 

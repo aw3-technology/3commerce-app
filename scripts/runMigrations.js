@@ -18,27 +18,19 @@ async function runMigrations() {
     await client.connect();
     console.log('Connected successfully!');
 
-    // Read the SQL file
-    const sqlFilePath = path.join(__dirname, '..', 'database-schema-simple.sql');
+    // Read the fixes SQL file
+    const sqlFilePath = path.join(__dirname, '..', 'database-schema-fixes.sql');
     const sql = fs.readFileSync(sqlFilePath, 'utf8');
 
-    console.log('Running migrations...');
+    console.log('Running RLS policy fixes...');
     await client.query(sql);
 
-    console.log('✅ Database schema created successfully!');
-    console.log('\nTables created:');
-    console.log('- products');
-    console.log('- customers');
-    console.log('- orders');
-    console.log('- order_items');
-    console.log('- transactions');
-    console.log('- refunds');
-    console.log('- comments');
-    console.log('- product_views');
-    console.log('- traffic_sources');
-    console.log('- sessions');
-    console.log('- notifications');
-    console.log('- messages');
+    console.log('✅ RLS policies updated successfully!');
+    console.log('\nPolicies updated:');
+    console.log('- user_profiles - More permissive read access');
+    console.log('- messages - Enabled for authenticated users');
+    console.log('- notifications - Fully accessible');
+    console.log('- storage.objects (avatars) - Public read, authenticated write');
 
   } catch (error) {
     console.error('❌ Error running migrations:', error.message);
