@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import OutsideClickHandler from "react-outside-click-handler";
 import styles from "./User.module.sass";
 import Icon from "../../Icon";
+import { useAuth } from "../../../contexts/AuthContext";
 
 const items = [
     {
@@ -63,6 +64,16 @@ const items = [
 const User = ({ className }) => {
     const [visible, setVisible] = useState(false);
     const { pathname } = useLocation();
+    const navigate = useNavigate();
+    const { logout, user } = useAuth();
+
+    const handleLogout = async () => {
+        setVisible(false);
+        const result = await logout();
+        if (result.success) {
+            navigate("/sign-in");
+        }
+    };
 
     return (
         <OutsideClickHandler onOutsideClick={() => setVisible(false)}>
@@ -78,6 +89,18 @@ const User = ({ className }) => {
                     <img src="/images/content/avatar.jpg" alt="Avatar" />
                 </button>
                 <div className={styles.body}>
+                    {user && (
+                        <div className={styles.menu}>
+                            <div style={{ padding: "12px 24px", borderBottom: "1px solid #e4e4e4" }}>
+                                <div style={{ fontSize: "14px", fontWeight: "600" }}>
+                                    {user.user_metadata?.name || "User"}
+                                </div>
+                                <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
+                                    {user.email}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {items.map((item, index) => (
                         <div className={styles.menu} key={index}>
                             {item.menu.map((x, index) =>
@@ -99,7 +122,7 @@ const User = ({ className }) => {
                                 ) : (
                                     <button
                                         className={styles.item}
-                                        onClick={() => setVisible(false)}
+                                        onClick={x.title === "Log out" ? handleLogout : () => setVisible(false)}
                                         key={index}
                                     >
                                         {x.title}

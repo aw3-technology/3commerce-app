@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Notifications.module.sass";
 import Item from "../Item";
@@ -7,36 +7,44 @@ import Switch from "../../../components/Switch";
 
 const settings = [
   {
-    id: 0,
+    id: "product_updates",
     title: "Product updates and community announcements",
-    tooltip: "Small description",
+    tooltip: "Receive notifications about product updates and community news",
   },
   {
-    id: 1,
+    id: "market_newsletter",
     title: "Market newsletter",
-    tooltip: "Small description",
+    tooltip: "Receive weekly market newsletter and insights",
   },
   {
-    id: 2,
+    id: "comments",
     title: "Comments",
-    tooltip: "Small description",
+    tooltip: "Get notified when someone comments on your products",
   },
   {
-    id: 3,
+    id: "purchases",
     title: "Purchases",
-    tooltip: "Small description",
+    tooltip: "Receive notifications about new purchases",
   },
 ];
 
-const Notifications = ({ className }) => {
-  const [selectedFilters, setSelectedFilters] = useState([]);
+const Notifications = ({ className, notificationPrefs, setNotificationPrefs }) => {
+  useEffect(() => {
+    // Initialize notification preferences if not already set
+    if (!notificationPrefs || Object.keys(notificationPrefs).length === 0) {
+      const defaultPrefs = {};
+      settings.forEach(setting => {
+        defaultPrefs[setting.id] = false;
+      });
+      setNotificationPrefs(defaultPrefs);
+    }
+  }, []);
 
   const handleChange = (id) => {
-    if (selectedFilters.includes(id)) {
-      setSelectedFilters(selectedFilters.filter((x) => x !== id));
-    } else {
-      setSelectedFilters((selectedFilters) => [...selectedFilters, id]);
-    }
+    setNotificationPrefs(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
   return (
@@ -59,7 +67,7 @@ const Notifications = ({ className }) => {
             </div>
             <Switch
               className={styles.switch}
-              value={selectedFilters.includes(x.id)}
+              value={notificationPrefs?.[x.id] || false}
               onChange={() => handleChange(x.id)}
             />
           </div>

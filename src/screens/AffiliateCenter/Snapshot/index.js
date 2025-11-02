@@ -1,33 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Snapshot.module.sass";
 import Item from "./Item";
 import Card from "../../../components/Card";
 import Dropdown from "../../../components/Dropdown";
 import Chart from "./Chart";
+import { getAffiliateSnapshot } from "../../../services/affiliateService";
 
 const intervals = ["Last 7 days", "This month", "All time"];
-
-const nav = [
-  {
-    title: "Clicks",
-    counter: "411",
-    icon: "mouse",
-    color: "#B1E5FC",
-    value: -37.8,
-  },
-  {
-    title: "Payouts",
-    counter: "$89",
-    icon: "activity",
-    color: "#CABDFF",
-    value: 37.8,
-  },
-];
 
 const Snapshot = ({ className }) => {
   const [sorting, setSorting] = useState(intervals[0]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [stats, setStats] = useState(null);
+  const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAffiliateData();
+  }, [sorting]);
+
+  const fetchAffiliateData = async () => {
+    setLoading(true);
+    try {
+      const period = sorting === "Last 7 days" ? "7days" : sorting === "This month" ? "month" : "all";
+      const { data, error } = await getAffiliateSnapshot(period);
+
+      if (!error && data) {
+        setStats(data);
+        setChartData(data.chartData || []);
+      }
+    } catch (error) {
+      console.error("Error fetching affiliate data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (value) => {
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+    return `$${value.toFixed(0)}`;
+  };
+
+  const nav = [
+    {
+      title: "Clicks",
+      counter: stats ? stats.clicks.toString() : "...",
+      icon: "mouse",
+      color: "#B1E5FC",
+      value: stats ? stats.clicksGrowth : 0,
+    },
+    {
+      title: "Payouts",
+      counter: stats ? formatCurrency(stats.payouts) : "...",
+      icon: "activity",
+      color: "#CABDFF",
+      value: stats ? stats.payoutsGrowth : 0,
+    },
+  ];
 
   return (
     <Card
@@ -59,8 +89,9 @@ const Snapshot = ({ className }) => {
           ))}
         </div>
         <div className={styles.body}>
-          {activeIndex === 0 && <Chart />}
-          {activeIndex === 1 && <Chart />}
+          {loading && <div className={styles.loading}>Loading...</div>}
+          {!loading && activeIndex === 0 && <Chart data={chartData} />}
+          {!loading && activeIndex === 1 && <Chart data={chartData} />}
         </div>
       </div>
     </Card>

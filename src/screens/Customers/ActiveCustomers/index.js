@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./ActiveCustomers.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
@@ -13,63 +13,46 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import useDarkMode from "use-dark-mode";
+import { getActiveCustomersData } from "../../../services/customerService";
 
 const intervals = ["Last 30 days", "Last 20 days", "Last 10 days"];
-
-const data = [
-  {
-    name: "Sep 12",
-    monthly: 500,
-    weekly: 300,
-    daily: 100,
-  },
-  {
-    name: "Sep 13",
-    monthly: 600,
-    weekly: 320,
-    daily: 80,
-  },
-  {
-    name: "Sep 14",
-    monthly: 550,
-    weekly: 270,
-    daily: 140,
-  },
-  {
-    name: "Sep 16",
-    monthly: 450,
-    weekly: 230,
-    daily: 100,
-  },
-  {
-    name: "Sep 17",
-    monthly: 620,
-    weekly: 280,
-    daily: 180,
-  },
-  {
-    name: "Sep 18",
-    monthly: 500,
-    weekly: 300,
-    daily: 100,
-  },
-  {
-    name: "Sep 19",
-    monthly: 600,
-    weekly: 320,
-    daily: 80,
-  },
-  {
-    name: "Sep 20",
-    monthly: 550,
-    weekly: 270,
-    daily: 140,
-  },
-];
 
 const ActiveCustomers = ({ className }) => {
   const darkMode = useDarkMode(false);
   const [sorting, setSorting] = useState(intervals[0]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const getDaysFromInterval = (interval) => {
+    switch (interval) {
+      case "Last 10 days":
+        return 10;
+      case "Last 20 days":
+        return 20;
+      case "Last 30 days":
+      default:
+        return 30;
+    }
+  };
+
+  useEffect(() => {
+    const fetchActiveCustomers = async () => {
+      setLoading(true);
+      const days = getDaysFromInterval(sorting);
+      const { data: customerData, error } = await getActiveCustomersData(days);
+
+      if (customerData && !error) {
+        setData(customerData);
+      } else {
+        console.error('Error fetching active customers:', error);
+        // Set empty data on error
+        setData([]);
+      }
+      setLoading(false);
+    };
+
+    fetchActiveCustomers();
+  }, [sorting]);
 
   return (
     <Card

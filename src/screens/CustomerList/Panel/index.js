@@ -3,14 +3,26 @@ import cn from "classnames";
 import styles from "./Panel.module.sass";
 import Icon from "../../../components/Icon";
 
-const Panel = () => {
+const Panel = ({ selectedCount = 0, onClearSelection }) => {
+  if (selectedCount === 0) {
+    return null;
+  }
+
   return (
     <div className={cn("panel", styles.panel)}>
       <div className={styles.info}>
         <Icon name="check-all" size="24" />
-        <span>2 customers</span> selected
+        <span>{selectedCount} {selectedCount === 1 ? 'customer' : 'customers'}</span> selected
       </div>
-      <button className={cn("button", styles.button)}>Message</button>
+      <div className={styles.actions}>
+        <button className={cn("button", styles.button)}>Message</button>
+        <button
+          className={cn("button-stroke", styles.button)}
+          onClick={onClearSelection}
+        >
+          Clear Selection
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,39 +1,82 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./TopDevice.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
 import Icon from "../../../components/Icon";
 import { PieChart, Pie, Tooltip, Cell, ResponsiveContainer } from "recharts";
+import { getDeviceAnalytics } from "../../../services/analyticsService";
 
-const legend = [
-  {
-    title: "Mobile",
-    percent: 20,
-    icon: "mobile",
-    fill: "#8E59FF",
-  },
-  {
-    title: "Tablet",
-    percent: 5,
-    icon: "tablet",
-    fill: "#83BF6E",
-  },
-  {
-    title: "Desktop",
-    percent: 75,
-    icon: "desktop",
-    fill: "#2A85FF",
-  },
-];
-
-const data = [
-  { name: "Mobile", value: 340 },
-  { name: "Tablet", value: 85 },
-  { name: "Desktop", value: 1275 },
-];
 const COLORS = ["#8E59FF", "#83BF6E", "#2A85FF"];
 
 const TopDevice = ({ className }) => {
+  const [deviceData, setDeviceData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchDeviceData();
+  }, []);
+
+  const fetchDeviceData = async () => {
+    setLoading(true);
+    const { data, error } = await getDeviceAnalytics();
+
+    if (error) {
+      console.error('Error fetching device analytics:', error);
+      setError(error);
+      // Fallback to default data
+      setDeviceData({
+        chartData: [
+          { name: "Mobile", value: 0 },
+          { name: "Tablet", value: 0 },
+          { name: "Desktop", value: 0 },
+        ],
+        legend: [
+          {
+            title: "Mobile",
+            percent: 0,
+            count: 0,
+            icon: "mobile",
+            fill: "#8E59FF",
+          },
+          {
+            title: "Tablet",
+            percent: 0,
+            count: 0,
+            icon: "tablet",
+            fill: "#83BF6E",
+          },
+          {
+            title: "Desktop",
+            percent: 0,
+            count: 0,
+            icon: "desktop",
+            fill: "#2A85FF",
+          },
+        ],
+        totalSessions: 0
+      });
+    } else {
+      setDeviceData(data);
+    }
+
+    setLoading(false);
+  };
+
+  if (loading) {
+    return (
+      <Card
+        className={cn(styles.card, className)}
+        title="Top device"
+        classTitle="title-blue"
+      >
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#777' }}>
+          Loading...
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={cn(styles.card, className)}
@@ -61,7 +104,7 @@ const TopDevice = ({ className }) => {
               }}
             />
             <Pie
-              data={data}
+              data={deviceData?.chartData || []}
               cx={140}
               cy={110}
               innerRadius={88}
@@ -70,7 +113,7 @@ const TopDevice = ({ className }) => {
               paddingAngle={1}
               dataKey="value"
             >
-              {data.map((entry, index) => (
+              {deviceData?.chartData?.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}
@@ -81,7 +124,7 @@ const TopDevice = ({ className }) => {
         </ResponsiveContainer>
       </div>
       <div className={styles.legend}>
-        {legend.map((x, index) => (
+        {deviceData?.legend?.map((x, index) => (
           <div className={styles.indicator} key={index}>
             <Icon name={x.icon} size="24" fill={x.fill} />
             <div className={styles.title}>{x.title}</div>
@@ -89,6 +132,11 @@ const TopDevice = ({ className }) => {
           </div>
         ))}
       </div>
+      {deviceData?.totalSessions === 0 && (
+        <div style={{ padding: '1rem', textAlign: 'center', fontSize: '12px', color: '#999' }}>
+          No session data available yet. Data will appear once users visit your site.
+        </div>
+      )}
     </Card>
   );
 };

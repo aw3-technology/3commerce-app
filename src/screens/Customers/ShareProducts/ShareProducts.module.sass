@@ -47,3 +47,31 @@
             svg
                 &:not(:last-child)
                     margin-right: 0
+
+.loading,
+.error,
+.empty
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: 40px 20px
+    text-align: center
+    min-height: 200px
+    p
+        +body1-m
+        color: $n4
+        margin-top: 16px
+    button
+        margin-top: 16px
+
+.error
+    p
+        color: $n6
+        +dark
+            color: $n3
+
+.empty
+    min-height: 150px
+    p
+        color: $n5

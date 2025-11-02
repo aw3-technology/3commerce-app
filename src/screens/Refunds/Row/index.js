@@ -3,8 +3,15 @@ import styles from "./Row.module.sass";
 import Modal from "../../../components/Modal";
 import Details from "./Details";
 
-const Row = ({ item }) => {
+const Row = ({ item, onRefundProcessed }) => {
   const [visibleModal, setVisibleModal] = useState(false);
+
+  const handleRefundProcessed = () => {
+    setVisibleModal(false);
+    if (onRefundProcessed) {
+      onRefundProcessed();
+    }
+  };
 
   return (
     <>
@@ -51,7 +58,7 @@ const Row = ({ item }) => {
         visible={visibleModal}
         onClose={() => setVisibleModal(false)}
       >
-        <Details item={item} />
+        <Details item={item} onRefundProcessed={handleRefundProcessed} />
       </Modal>
     </>
   );

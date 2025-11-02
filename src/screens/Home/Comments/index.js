@@ -1,39 +1,57 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
 import styles from "./Comments.module.sass";
 import Card from "../../../components/Card";
 import Icon from "../../../components/Icon";
 import Favorite from "../../../components/Favorite";
-
-const comments = [
-  {
-    title: "Ethel",
-    login: "@ethel",
-    time: "1h",
-    content: "On <strong>Smiles – 3D icons</strong>",
-    comment: 'Great work <span role="img" aria-label="smile">😊</span>',
-    avatar: "/images/content/avatar.jpg",
-  },
-  {
-    title: "Jazmyn",
-    login: "@jaz.designer",
-    time: "8h",
-    content: "On <strong>Fleet - Travel shopping</strong>",
-    comment: "I need react version asap!",
-    avatar: "/images/content/avatar-1.jpg",
-  },
-  {
-    title: "Ethel",
-    login: "@ethel",
-    time: "1h",
-    content: "On <strong>Smiles – 3D icons</strong>",
-    comment: "How can I buy only the design?",
-    avatar: "/images/content/avatar-2.jpg",
-  },
-];
+import { getAllComments } from "../../../services/commentService";
 
 const Comments = ({ className }) => {
+  const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchComments();
+  }, []);
+
+  const fetchComments = async () => {
+    setLoading(true);
+    const { data, error } = await getAllComments({ limit: 3 });
+
+    if (!error && data) {
+      // Transform database comments to match UI format
+      const formattedComments = data.map((comment) => ({
+        title: comment.customers?.name || "Anonymous",
+        login: `@${comment.customers?.email?.split('@')[0] || 'user'}`,
+        time: getTimeAgo(comment.created_at),
+        content: `On <strong>${comment.products?.name || 'Product'}</strong>`,
+        comment: comment.content,
+        avatar: comment.customers?.avatar_url || "/images/content/avatar.jpg",
+        rating: comment.rating,
+      }));
+      setComments(formattedComments);
+    } else {
+      // Fallback to default empty state
+      setComments([]);
+    }
+    setLoading(false);
+  };
+
+  const getTimeAgo = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    const days = Math.floor(hours / 24);
+    return `${days}d`;
+  };
   return (
     <Card
       className={cn(styles.card, className)}
@@ -41,8 +59,16 @@ const Comments = ({ className }) => {
       classTitle="title-yellow"
     >
       <div className={styles.comments}>
-        <div className={styles.list}>
-          {comments.map((x, index) => (
+        {loading ? (
+          <div style={{ padding: '20px', textAlign: 'center' }}>Loading comments...</div>
+        ) : comments.length === 0 ? (
+          <div style={{ padding: '20px', textAlign: 'center', color: '#6F767E' }}>
+            No comments yet. Comments will appear here once customers review your products.
+          </div>
+        ) : (
+          <>
+            <div className={styles.list}>
+              {comments.map((x, index) => (
             <div className={styles.item} key={index}>
               <div className={styles.avatar}>
                 <img src={x.avatar} alt="Avatar" />
@@ -75,13 +101,15 @@ const Comments = ({ className }) => {
               </div>
             </div>
           ))}
-        </div>
-        <Link
-          className={cn("button-stroke", styles.button)}
-          to="/products/comments"
-        >
-          View all
-        </Link>
+            </div>
+            <Link
+              className={cn("button-stroke", styles.button)}
+              to="/products/comments"
+            >
+              View all
+            </Link>
+          </>
+        )}
       </div>
     </Card>
   );

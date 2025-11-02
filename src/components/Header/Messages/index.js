@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import cn from "classnames";
 import OutsideClickHandler from "react-outside-click-handler";
@@ -6,63 +6,100 @@ import styles from "./Messages.module.sass";
 import Icon from "../../Icon";
 import Actions from "../../Actions";
 import Item from "./Item";
-
-const messages = [
-    {
-        title: "Jarret Waelchi",
-        content: "When do you release the coded template",
-        avatar: "/images/content/avatar-1.jpg",
-        time: "03:30PM",
-        new: true,
-        url: "/message-center",
-    },
-    {
-        title: "Orval Casper",
-        content: "When do you release the coded template",
-        avatar: "/images/content/avatar-2.jpg",
-        time: "11:59AM",
-        online: true,
-        url: "/message-center",
-    },
-    {
-        title: "Michel Emard",
-        content: "When do you release the coded template",
-        avatar: "/images/content/avatar-3.jpg",
-        time: "09:30AM",
-        new: true,
-        url: "/message-center",
-    },
-    {
-        title: "Reuben Ward",
-        content: "When do you release the coded template",
-        avatar: "/images/content/avatar-4.jpg",
-        time: "08:00AM",
-        url: "/message-center",
-    },
-    {
-        title: "Evalyn Jenkins",
-        content: "When do you release the coded template",
-        avatar: "/images/content/avatar-5.jpg",
-        time: "07:01AM",
-        url: "/message-center",
-    },
-];
-
-const actions = [
-    {
-        title: "Mark as read",
-        icon: "check",
-        action: () => console.log("Mark as read"),
-    },
-    {
-        title: "Delete message",
-        icon: "trash",
-        action: () => console.log("Delete message"),
-    },
-];
+import {
+    getConversations,
+    getUnreadCount,
+    markConversationAsRead,
+    deleteMessage,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+} from "../../../services/messageService";
+import { getCurrentUser } from "../../../services/authService";
 
 const Messages = ({ className }) => {
     const [visible, setVisible] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: user } = await getCurrentUser();
+            setCurrentUser(user);
+        };
+        fetchUser();
+    }, []);
+
+    useEffect(() => {
+        if (!currentUser) return;
+
+        fetchMessages();
+        fetchUnreadCount();
+
+        // Subscribe to real-time messages
+        const subscription = subscribeToMessages(currentUser.id, () => {
+            fetchMessages();
+            fetchUnreadCount();
+        });
+
+        return () => {
+            unsubscribeFromMessages(subscription);
+        };
+    }, [currentUser]);
+
+    const fetchMessages = async () => {
+        if (!currentUser) return;
+
+        const { data, error } = await getConversations(currentUser.id);
+        if (!error && data) {
+            // Transform and limit to 5 most recent
+            const transformedMessages = data.slice(0, 5).map((conv) => ({
+                title: conv.partner?.raw_user_meta_data?.name || conv.partner?.email || "Unknown User",
+                content: conv.content || "",
+                avatar: conv.partner?.raw_user_meta_data?.avatar_url || "/images/content/avatar.jpg",
+                time: formatTime(conv.created_at),
+                new: conv.unread,
+                online: false,
+                url: "/message-center",
+            }));
+            setMessages(transformedMessages);
+        }
+    };
+
+    const fetchUnreadCount = async () => {
+        if (!currentUser) return;
+
+        const { data: count } = await getUnreadCount(currentUser.id);
+        setUnreadCount(count || 0);
+    };
+
+    const formatTime = (timestamp) => {
+        const date = new Date(timestamp);
+        return date.toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+    };
+
+    const handleMarkAsRead = async () => {
+        if (!currentUser || messages.length === 0) return;
+        // Mark all visible conversations as read
+        await Promise.all(
+            messages
+                .filter((msg) => msg.new)
+                .map((msg) => markConversationAsRead(currentUser.id, msg.partnerId))
+        );
+        fetchMessages();
+        fetchUnreadCount();
+    };
+
+    const actions = [
+        {
+            title: "Mark as read",
+            icon: "check",
+            action: handleMarkAsRead,
+        },
+    ];
 
     return (
         <OutsideClickHandler onOutsideClick={() => setVisible(false)}>
@@ -72,10 +109,13 @@ const Messages = ({ className }) => {
                 })}
             >
                 <button
-                    className={cn(styles.head, styles.active)}
+                    className={cn(styles.head, { [styles.active]: unreadCount > 0 })}
                     onClick={() => setVisible(!visible)}
                 >
                     <Icon name="message" size="24" />
+                    {unreadCount > 0 && (
+                        <span className={styles.badge}>{unreadCount}</span>
+                    )}
                 </button>
                 <div className={styles.body}>
                     <div className={styles.top}>
@@ -88,14 +128,18 @@ const Messages = ({ className }) => {
                         />
                     </div>
                     <div className={styles.list}>
-                        {messages.map((x, index) => (
-                            <Item
-                                className={cn(styles.item, className)}
-                                item={x}
-                                key={index}
-                                onClose={() => setVisible(false)}
-                            />
-                        ))}
+                        {messages.length === 0 ? (
+                            <div className={styles.empty}>No messages</div>
+                        ) : (
+                            messages.map((x, index) => (
+                                <Item
+                                    className={cn(styles.item, className)}
+                                    item={x}
+                                    key={index}
+                                    onClose={() => setVisible(false)}
+                                />
+                            ))
+                        )}
                     </div>
                     <Link
                         className={cn("button", styles.button)}

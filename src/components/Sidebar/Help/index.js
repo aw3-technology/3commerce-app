@@ -1,72 +1,90 @@
+import { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Help.module.sass";
 import { Link } from "react-router-dom";
 import Icon from "../../Icon";
 import Item from "./Item";
-
-const items = [
-    {
-        title: "Exclusive downloads",
-        image: "/images/content/product-pic-1.jpg",
-        image2x: "/images/content/product-pic-1@2x.jpg",
-        statusText: "New",
-        statusColor: "purple",
-        avatar: "/images/content/avatar-1.jpg",
-        time: "3 mins",
-    },
-    {
-        title: "Behind the scenes",
-        image: "/images/content/product-pic-2.jpg",
-        image2x: "/images/content/product-pic-2@2x.jpg",
-        statusText: "New",
-        statusColor: "purple",
-        avatar: "/images/content/avatar-2.jpg",
-        time: "5 mins",
-    },
-    {
-        title: "Use guidelines",
-        image: "/images/content/product-pic-3.jpg",
-        image2x: "/images/content/product-pic-3@2x.jpg",
-        avatar: "/images/content/avatar-3.jpg",
-        time: "8 mins",
-    },
-    {
-        title: "Life & work update",
-        image: "/images/content/product-pic-4.jpg",
-        image2x: "/images/content/product-pic-4@2x.jpg",
-        avatar: "/images/content/avatar-4.jpg",
-        time: "12 mins",
-    },
-    {
-        title: "Promote your product",
-        image: "/images/content/product-pic-5.jpg",
-        image2x: "/images/content/product-pic-5@2x.jpg",
-        avatar: "/images/content/avatar-5.jpg",
-        time: "33 mins",
-    },
-];
-
-const menu = [
-    {
-        title: "Upgrade to Pro",
-        icon: "lightning",
-        arrow: true,
-        url: "/upgrade-to-pro",
-    },
-    {
-        title: "Download desktop app",
-        icon: "download",
-        url: "/",
-    },
-    {
-        title: "Message center",
-        icon: "message",
-        counter: 8,
-        url: "/message-center",
-    },
-];
+import { getHelpResources, incrementResourceViewCount } from "../../../services/helpService";
+import { getCurrentUser } from "../../../services/authService";
+import { getUnreadCount } from "../../../services/messageService";
 
 const Help = ({ className, visible, setVisible, onClose }) => {
+    const [resources, setResources] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [unreadMessages, setUnreadMessages] = useState(0);
+    const [currentUser, setCurrentUser] = useState(null);
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const { data: user } = await getCurrentUser();
+            setCurrentUser(user);
+        };
+        fetchUser();
+    }, []);
+
+    useEffect(() => {
+        if (visible) {
+            fetchHelpResources();
+            fetchUnreadCount();
+        }
+    }, [visible]);
+
+    const fetchHelpResources = async () => {
+        setLoading(true);
+        const { data, error } = await getHelpResources({ limit: 5 });
+
+        if (!error && data) {
+            const transformedResources = data.map((resource) => ({
+                id: resource.id,
+                title: resource.title,
+                image: resource.image_url || '/images/content/product-pic-1.jpg',
+                image2x: resource.thumbnail_url || resource.image_url || '/images/content/product-pic-1@2x.jpg',
+                statusText: resource.is_new ? 'New' : null,
+                statusColor: resource.is_new ? 'purple' : null,
+                avatar: resource.author?.raw_user_meta_data?.avatar_url || '/images/content/avatar-1.jpg',
+                time: resource.duration_minutes ? `${resource.duration_minutes} mins` : null,
+                category: resource.category,
+                videoUrl: resource.video_url,
+            }));
+            setResources(transformedResources);
+        }
+        setLoading(false);
+    };
+
+    const fetchUnreadCount = async () => {
+        if (!currentUser) return;
+
+        const { data: count } = await getUnreadCount(currentUser.id);
+        setUnreadMessages(count || 0);
+    };
+
+    const handleResourceClick = async (resourceId) => {
+        // Track view in background
+        if (resourceId) {
+            await incrementResourceViewCount(resourceId);
+        }
+    };
+
+    const menu = [
+        {
+            title: "Upgrade to Pro",
+            icon: "lightning",
+            arrow: true,
+            url: "/upgrade-to-pro",
+        },
+        {
+            title: "Download desktop app",
+            icon: "download",
+            url: "/",
+        },
+        {
+            title: "Message center",
+            icon: "message",
+            counter: unreadMessages,
+            url: "/message-center",
+        },
+    ];
+
     const handleClose = () => {
         onClose();
         setVisible(false);
@@ -90,9 +108,17 @@ const Help = ({ className, visible, setVisible, onClose }) => {
                     </button>
                 </div>
                 <div className={styles.list}>
-                    {items.map((x, index) => (
-                        <Item className={styles.item} item={x} key={index} />
-                    ))}
+                    {loading ? (
+                        <div className={styles.loading}>Loading resources...</div>
+                    ) : resources.length === 0 ? (
+                        <div className={styles.empty}>No help resources available</div>
+                    ) : (
+                        resources.map((x, index) => (
+                            <div key={index} onClick={() => handleResourceClick(x.id)}>
+                                <Item className={styles.item} item={x} />
+                            </div>
+                        ))
+                    )}
                 </div>
                 <div className={styles.menu}>
                     {menu.map((x, index) => (
@@ -109,8 +135,8 @@ const Help = ({ className, visible, setVisible, onClose }) => {
                                     <Icon name="arrow-next" size="24" />
                                 </div>
                             )}
-                            {x.counter && (
-                                <div className={styles.counter}>8</div>
+                            {x.counter > 0 && (
+                                <div className={styles.counter}>{x.counter}</div>
                             )}
                         </Link>
                     ))}

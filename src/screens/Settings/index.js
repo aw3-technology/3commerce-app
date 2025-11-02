@@ -7,8 +7,23 @@ import ProfileInformation from "./ProfileInformation";
 import Login from "./Login";
 import Notifications from "./Notifications";
 import Payment from "./Payment";
+import { upsertUserProfile, getCurrentUser, updateUserEmail } from "../../services/userService";
 
 const Settings = () => {
+  const [profileData, setProfileData] = useState({
+    displayName: "",
+    email: "",
+    location: "",
+    bio: ""
+  });
+  const [notificationPrefs, setNotificationPrefs] = useState({});
+  const [paymentData, setPaymentData] = useState({
+    paypalEmail: "",
+    paymentMethod: "paypal"
+  });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState(null);
   const navigation = [
     {
       title: "Basics",
@@ -45,6 +60,114 @@ const Settings = () => {
     setActiveIndex(index);
     x.action();
   };
+
+  // Load user data on component mount
+  React.useEffect(() => {
+    const loadUserData = async () => {
+      setLoading(true);
+      const { data, error } = await getCurrentUser();
+
+      if (!error && data) {
+        setUserId(data.id);
+
+        // Load profile data
+        if (data.profile) {
+          setProfileData({
+            displayName: data.profile.display_name || data.user_metadata?.name || "",
+            email: data.email || "",
+            location: data.profile.location || "",
+            bio: data.profile.bio || ""
+          });
+
+          // Load notification preferences
+          if (data.profile.notification_preferences) {
+            setNotificationPrefs(data.profile.notification_preferences);
+          }
+
+          // Load payment data
+          if (data.profile.paypal_email) {
+            setPaymentData({
+              paypalEmail: data.profile.paypal_email,
+              paymentMethod: "paypal"
+            });
+          }
+        } else {
+          // Set defaults from auth metadata
+          setProfileData(prev => ({
+            ...prev,
+            displayName: data.user_metadata?.name || "",
+            email: data.email || ""
+          }));
+        }
+      }
+
+      setLoading(false);
+    };
+
+    loadUserData();
+  }, []);
+
+  const handleSave = async () => {
+    if (!userId) {
+      alert("User not authenticated. Please log in again.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Get current user to check if email changed
+      const { data: userData, error: userError } = await getCurrentUser();
+      if (userError) {
+        console.error("Error getting current user:", userError);
+        alert("Failed to get user information");
+        setSaving(false);
+        return;
+      }
+
+      // Update email if changed
+      if (profileData.email && profileData.email !== userData.email) {
+        const { error: emailError } = await updateUserEmail(profileData.email);
+        if (emailError) {
+          console.error("Error updating email:", emailError);
+          alert("Failed to update email. Please check your new email for verification.");
+          setSaving(false);
+          return;
+        } else {
+          alert("Email update initiated. Please check your new email to verify the change.");
+        }
+      }
+
+      // Save profile data with notification and payment preferences
+      const { data, error } = await upsertUserProfile(userId, {
+        display_name: profileData.displayName,
+        location: profileData.location,
+        bio: profileData.bio,
+        paypal_email: paymentData.paypalEmail,
+        notification_preferences: notificationPrefs
+      });
+
+      if (error) {
+        console.error("Error saving profile:", error);
+        alert("Failed to save profile. Please try again.");
+      } else {
+        alert("Settings saved successfully!");
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      alert("An unexpected error occurred");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.settings}>
+        <div className={styles.loading}>Loading settings...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className={styles.settings}>
@@ -76,7 +199,11 @@ const Settings = () => {
               })}
             >
               <div className={styles.anchor} ref={scrollToProfile}></div>
-              <ProfileInformation />
+              <ProfileInformation
+                profileData={profileData}
+                setProfileData={setProfileData}
+                userId={userId}
+              />
             </div>
             <div
               className={cn(styles.item, {
@@ -92,7 +219,10 @@ const Settings = () => {
               })}
             >
               <div className={styles.anchor} ref={scrollToNotifications}></div>
-              <Notifications />
+              <Notifications
+                notificationPrefs={notificationPrefs}
+                setNotificationPrefs={setNotificationPrefs}
+              />
             </div>
             <div
               className={cn(styles.item, {
@@ -100,10 +230,19 @@ const Settings = () => {
               })}
             >
               <div className={styles.anchor} ref={scrollToPayment}></div>
-              <Payment />
+              <Payment
+                paymentData={paymentData}
+                setPaymentData={setPaymentData}
+              />
             </div>
           </div>
-          <button className={cn("button", styles.button)}>Save</button>
+          <button
+            className={cn("button", styles.button)}
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? "Saving..." : "Save"}
+          </button>
         </div>
       </div>
       <TooltipGlodal />

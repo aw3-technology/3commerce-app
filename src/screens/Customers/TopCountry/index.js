@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import styles from "./TopCountry.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
@@ -11,36 +12,29 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import useDarkMode from "use-dark-mode";
-
-const data = [
-    {
-        name: "Vietnam",
-        views: 1823,
-    },
-    {
-        name: "USA",
-        views: 1674,
-    },
-    {
-        name: "Indonesia",
-        views: 1498,
-    },
-    {
-        name: "Hongkong",
-        views: 1123,
-    },
-    {
-        name: "Russia",
-        views: 758,
-    },
-    {
-        name: "Ukraine",
-        views: 432,
-    },
-];
+import { getCustomersByCountry } from "../../../services/customerService";
 
 const TopCountry = ({ className }) => {
     const darkMode = useDarkMode(false);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchCountryData = async () => {
+            setLoading(true);
+            const { data: countryData, error } = await getCustomersByCountry(6);
+
+            if (countryData && !error) {
+                setData(countryData);
+            } else {
+                console.error('Error fetching customer country data:', error);
+                setData([]);
+            }
+            setLoading(false);
+        };
+
+        fetchCountryData();
+    }, []);
 
     return (
         <Card

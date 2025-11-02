@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Overview.module.sass";
 import TooltipGlodal from "../../../components/TooltipGlodal";
@@ -8,128 +8,105 @@ import Icon from "../../../components/Icon";
 import Tooltip from "../../../components/Tooltip";
 import Balance from "../../../components/Balance";
 import Chart from "./Chart";
+import { getDashboardStats, getSalesData } from "../../../services/analyticsService";
+import { getCustomerStats } from "../../../services/customerService";
 
 const intervals = ["This week", "This month", "This year"];
 
-const items = [
-  {
-    title: "Earning",
-    counter: "128k",
-    icon: "activity",
-    value: 37.8,
-    background: "#edf8f2",
-    chartColor: "#83BF6E",
-    data: [
-      {
-        name: "1",
-        earning: 500,
-      },
-      {
-        name: "2",
-        earning: 800,
-      },
-      {
-        name: "3",
-        earning: 1100,
-      },
-      {
-        name: "4",
-        earning: 900,
-      },
-      {
-        name: "5",
-        earning: 1300,
-      },
-      {
-        name: "6",
-        earning: 800,
-      },
-      {
-        name: "7",
-        earning: 1000,
-      },
-    ],
-  },
-  {
-    title: "Customer",
-    counter: "512",
-    icon: "shopping-bag",
-    value: -37.8,
-    background: "#ecf9fe",
-    chartColor: "#2A85FF",
-    data: [
-      {
-        name: "1",
-        earning: 1300,
-      },
-      {
-        name: "2",
-        earning: 800,
-      },
-      {
-        name: "3",
-        earning: 1000,
-      },
-      {
-        name: "4",
-        earning: 500,
-      },
-      {
-        name: "5",
-        earning: 800,
-      },
-      {
-        name: "6",
-        earning: 1100,
-      },
-      {
-        name: "7",
-        earning: 900,
-      },
-    ],
-  },
-  {
-    title: "Payouts",
-    counter: "64k",
-    icon: "payment",
-    value: 37.8,
-    background: "#f2efff",
-    chartColor: "#8E59FF",
-    data: [
-      {
-        name: "1",
-        earning: 1200,
-      },
-      {
-        name: "2",
-        earning: 800,
-      },
-      {
-        name: "3",
-        earning: 1300,
-      },
-      {
-        name: "4",
-        earning: 600,
-      },
-      {
-        name: "5",
-        earning: 1300,
-      },
-      {
-        name: "6",
-        earning: 800,
-      },
-      {
-        name: "7",
-        earning: 1000,
-      },
-    ],
-  },
-];
-
 const Overview = ({ className }) => {
   const [sorting, setSorting] = useState(intervals[0]);
+  const [stats, setStats] = useState(null);
+  const [salesData, setSalesData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [sorting]);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const { data: dashboardData } = await getDashboardStats();
+      const { data: customerData } = await getCustomerStats();
+      const { data: sales } = await getSalesData('week');
+
+      const formattedSales = sales?.slice(0, 7).map((item, index) => ({
+        name: (index + 1).toString(),
+        earning: item.total_amount || 0,
+      })) || [];
+
+      setStats({
+        revenue: dashboardData?.revenue || 0,
+        customers: customerData?.total || 0,
+        orders: dashboardData?.orders || 0,
+      });
+      setSalesData(formattedSales);
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (value) => {
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `${(value / 1000).toFixed(0)}k`;
+    return value.toString();
+  };
+
+  const items = [
+    {
+      title: "Earning",
+      counter: stats ? `$${formatCurrency(stats.revenue)}` : "...",
+      icon: "activity",
+      value: 37.8,
+      background: "#edf8f2",
+      chartColor: "#83BF6E",
+      data: salesData.length > 0 ? salesData : [
+        { name: "1", earning: 0 },
+        { name: "2", earning: 0 },
+        { name: "3", earning: 0 },
+        { name: "4", earning: 0 },
+        { name: "5", earning: 0 },
+        { name: "6", earning: 0 },
+        { name: "7", earning: 0 },
+      ],
+    },
+    {
+      title: "Customer",
+      counter: stats ? stats.customers.toString() : "...",
+      icon: "shopping-bag",
+      value: -37.8,
+      background: "#ecf9fe",
+      chartColor: "#2A85FF",
+      data: salesData.length > 0 ? salesData : [
+        { name: "1", earning: 0 },
+        { name: "2", earning: 0 },
+        { name: "3", earning: 0 },
+        { name: "4", earning: 0 },
+        { name: "5", earning: 0 },
+        { name: "6", earning: 0 },
+        { name: "7", earning: 0 },
+      ],
+    },
+    {
+      title: "Orders",
+      counter: stats ? stats.orders.toString() : "...",
+      icon: "payment",
+      value: 37.8,
+      background: "#f2efff",
+      chartColor: "#8E59FF",
+      data: salesData.length > 0 ? salesData : [
+        { name: "1", earning: 0 },
+        { name: "2", earning: 0 },
+        { name: "3", earning: 0 },
+        { name: "4", earning: 0 },
+        { name: "5", earning: 0 },
+        { name: "6", earning: 0 },
+        { name: "7", earning: 0 },
+      ],
+    },
+  ];
 
   return (
     <>

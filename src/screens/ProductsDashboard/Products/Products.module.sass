@@ -72,3 +72,25 @@
             background: $n6
     &:not(:last-child)
         margin-right: 8px
+
+.loading,
+.error
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    padding: 40px 20px
+    text-align: center
+    min-height: 300px
+    p
+        +body1-m
+        color: $n4
+        margin-bottom: 16px
+    button
+        margin-top: 8px
+
+.error
+    p
+        color: $n6
+        +dark
+            color: $n3

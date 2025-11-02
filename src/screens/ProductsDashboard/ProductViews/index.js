@@ -1,40 +1,54 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./ProductViews.module.sass";
 import Card from "../../../components/Card";
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { getProductViews } from "../../../services/analyticsService";
 
-const data = [
-  {
-    name: "Mo",
-    views: 20,
-  },
-  {
-    name: "Tu",
-    views: 60,
-  },
-  {
-    name: "We",
-    views: 45,
-  },
-  {
-    name: "Th",
-    views: 16,
-  },
-  {
-    name: "Fr",
-    views: 20,
-  },
-  {
-    name: "Sa",
-    views: 115,
-  },
-  {
-    name: "Su",
-    views: 25,
-  },
+const defaultData = [
+  { name: "Mo", views: 0 },
+  { name: "Tu", views: 0 },
+  { name: "We", views: 0 },
+  { name: "Th", views: 0 },
+  { name: "Fr", views: 0 },
+  { name: "Sa", views: 0 },
+  { name: "Su", views: 0 },
 ];
 
 const ProductViews = () => {
+  const [data, setData] = useState(defaultData);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProductViews();
+  }, []);
+
+  const fetchProductViews = async () => {
+    setLoading(true);
+    try {
+      const { data: viewsData, error } = await getProductViews();
+
+      if (!error && viewsData && viewsData.length > 0) {
+        const weekDays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+        const aggregatedViews = viewsData.reduce((acc, item) => {
+          const date = new Date(item.created_at);
+          const dayIndex = date.getDay();
+          const dayName = weekDays[dayIndex === 0 ? 6 : dayIndex - 1];
+
+          const existingDay = acc.find(d => d.name === dayName);
+          if (existingDay) {
+            existingDay.views += item.view_count || 1;
+          }
+          return acc;
+        }, defaultData.map(d => ({ ...d })));
+
+        setData(aggregatedViews);
+      }
+    } catch (error) {
+      console.error("Error fetching product views:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <Card className={styles.card} title="Product views" classTitle="title-blue">
       <div className={styles.chart}>

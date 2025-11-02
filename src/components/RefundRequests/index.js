@@ -1,21 +1,42 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
 import styles from "./RefundRequests.module.sass";
 import Card from "../Card";
 import Icon from "../Icon";
-
-const requests = [
-  {
-    content:
-      'You have <strong>52 open refund requests</strong> to action. This includes <strong>8 new requests</strong>. <span role="img" aria-label="smile">👀</span>',
-    icon: "basket",
-    fill: "#FF6A55",
-    color: "#FFE7E4",
-  },
-];
+import { getRefunds } from "../../services/orderService";
 
 const RefundRequests = ({ className, title, classTitle }) => {
+  const [refundStats, setRefundStats] = useState({ total: 0, pending: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRefunds();
+  }, []);
+
+  const fetchRefunds = async () => {
+    setLoading(true);
+    const { data, error } = await getRefunds();
+
+    if (!error && data) {
+      const total = data.length;
+      const pending = data.filter(r => r.status === 'pending').length;
+      setRefundStats({ total, pending });
+    }
+    setLoading(false);
+  };
+
+  const requests = [
+    {
+      content:
+        loading ? 'Loading refund requests...' :
+        refundStats.total === 0 ? 'No refund requests at the moment. <span role="img" aria-label="smile">✅</span>' :
+        `You have <strong>${refundStats.total} open refund requests</strong> to action. This includes <strong>${refundStats.pending} pending requests</strong>. <span role="img" aria-label="smile">👀</span>`,
+      icon: "basket",
+      fill: "#FF6A55",
+      color: "#FFE7E4",
+    },
+  ];
   return (
     <Card
       className={cn(styles.card, className)}

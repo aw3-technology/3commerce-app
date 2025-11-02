@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./PerformanceByDay.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
@@ -13,39 +13,46 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import useDarkMode from "use-dark-mode";
+import { getAffiliatePerformanceByDay } from "../../../services/affiliateService";
 
 const intervals = ["Last 7 days", "This month", "All time"];
-
-const data = [
-  {
-    name: "12",
-    click: 20,
-  },
-  {
-    name: "13",
-    click: 94,
-  },
-  {
-    name: "14",
-    click: 120,
-  },
-  {
-    name: "15",
-    click: 125,
-  },
-  {
-    name: "16",
-    click: 202,
-  },
-  {
-    name: "17",
-    click: 84,
-  },
-];
 
 const PerformanceByDay = ({ className }) => {
   const darkMode = useDarkMode(false);
   const [sorting, setSorting] = useState(intervals[0]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchPerformanceData();
+  }, [sorting]);
+
+  const fetchPerformanceData = async () => {
+    setLoading(true);
+    try {
+      const period = sorting === "Last 7 days" ? "7days" : sorting === "This month" ? "month" : "all";
+      const { data: performanceData, error } = await getAffiliatePerformanceByDay(period);
+
+      if (!error && performanceData) {
+        setData(performanceData);
+      } else {
+        // Fallback to default data
+        setData([
+          { name: "12", click: 0 },
+          { name: "13", click: 0 },
+          { name: "14", click: 0 },
+          { name: "15", click: 0 },
+          { name: "16", click: 0 },
+          { name: "17", click: 0 },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error fetching performance data:", error);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card
@@ -65,6 +72,8 @@ const PerformanceByDay = ({ className }) => {
       }
     >
       <div className={styles.chart}>
+        {loading && <div className={styles.loading}>Loading...</div>}
+        {!loading && (
         <ResponsiveContainer width="100%" height="100%">
           <LineChart
             width={500}
@@ -120,6 +129,7 @@ const PerformanceByDay = ({ className }) => {
             />
           </LineChart>
         </ResponsiveContainer>
+        )}
       </div>
     </Card>
   );

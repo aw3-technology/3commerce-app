@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./ProductViews.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
@@ -13,43 +13,45 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import useDarkMode from "use-dark-mode";
+import { getProductViews } from "../../../services/analyticsService";
 
 const intervals = ["Last 7 days", "This month", "All time"];
-
-const data = [
-  {
-    name: "22",
-    views: 27,
-  },
-  {
-    name: "23",
-    views: 22,
-  },
-  {
-    name: "24",
-    views: 32,
-  },
-  {
-    name: "25",
-    views: 18,
-  },
-  {
-    name: "26",
-    views: 27,
-  },
-  {
-    name: "27",
-    views: 15,
-  },
-  {
-    name: "28",
-    views: 21,
-  },
-];
 
 const ProductViews = ({ className }) => {
   const darkMode = useDarkMode(false);
   const [sorting, setSorting] = useState(intervals[0]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProductViews();
+  }, []);
+
+  const fetchProductViews = async () => {
+    setLoading(true);
+    const { data: viewsData, error } = await getProductViews();
+
+    if (!error && viewsData) {
+      // Transform data for the chart
+      const chartData = viewsData.slice(0, 7).map((item, index) => ({
+        name: (22 + index).toString(),
+        views: item.view_count || 0,
+      }));
+      setData(chartData);
+    } else {
+      // Use default data if no data from backend
+      setData([
+        { name: "22", views: 0 },
+        { name: "23", views: 0 },
+        { name: "24", views: 0 },
+        { name: "25", views: 0 },
+        { name: "26", views: 0 },
+        { name: "27", views: 0 },
+        { name: "28", views: 0 },
+      ]);
+    }
+    setLoading(false);
+  };
 
   return (
     <Card

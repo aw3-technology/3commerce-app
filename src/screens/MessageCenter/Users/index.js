@@ -13,9 +13,19 @@ const Users = ({
   onSubmit,
   search,
   setSearch,
+  onConversationSelect,
+  loading,
 }) => {
-  const [activeId, setActiveId] = useState(items[0].id);
+  const [activeId, setActiveId] = useState(items.length > 0 ? items[0].id : null);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const handleItemClick = (item) => {
+    setActiveId(item.id);
+    setVisible(true);
+    if (onConversationSelect) {
+      onConversationSelect(item);
+    }
+  };
 
   return (
     <div className={cn(className, styles.users)}>
@@ -34,15 +44,22 @@ const Users = ({
         ))}
       </div>
       <div className={styles.list}>
-        {items.map((x, index) => (
-          <Item
-            item={x}
-            activeId={activeId}
-            setActiveId={setActiveId}
-            setVisible={setVisible}
-            key={index}
-          />
-        ))}
+        {loading ? (
+          <div className={styles.loading}>Loading conversations...</div>
+        ) : items.length === 0 ? (
+          <div className={styles.empty}>No conversations yet</div>
+        ) : (
+          items.map((x, index) => (
+            <Item
+              item={x}
+              activeId={activeId}
+              setActiveId={setActiveId}
+              setVisible={setVisible}
+              onItemClick={() => handleItemClick(x)}
+              key={index}
+            />
+          ))
+        )}
       </div>
       <Form
         className={styles.form}

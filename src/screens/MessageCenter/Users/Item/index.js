@@ -1,10 +1,13 @@
 import cn from "classnames";
 import styles from "./Item.module.sass";
 
-const Item = ({ item, setVisible, activeId, setActiveId }) => {
+const Item = ({ item, setVisible, activeId, setActiveId, onItemClick }) => {
     const handleClick = (id) => {
         setVisible(true);
         setActiveId(id);
+        if (onItemClick) {
+            onItemClick(item);
+        }
     };
 
     return (

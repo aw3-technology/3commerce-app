@@ -12,6 +12,8 @@ const Messages = ({
   actions,
   parameters,
   messages,
+  onSendMessage,
+  selectedConversation,
 }) => {
   return (
     <div className={cn(className, styles.messages, { [styles.show]: visible })}>
@@ -19,17 +21,27 @@ const Messages = ({
         actions={actions}
         parameters={parameters}
         setVisible={setVisible}
+        selectedConversation={selectedConversation}
       />
       <div className={styles.wrapper}>
-        <button className={cn("button-stroke button-small", styles.button)}>
-          Load conversation
-        </button>
-        <div className={styles.list}>
-          {messages.map((x, index) => (
-            <Message item={x} key={index} />
-          ))}
-        </div>
-        <Send />
+        {!selectedConversation ? (
+          <div className={styles.empty}>
+            <p>Select a conversation to view messages</p>
+          </div>
+        ) : messages.length === 0 ? (
+          <div className={styles.empty}>
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.list}>
+              {messages.map((x, index) => (
+                <Message item={x} key={index} />
+              ))}
+            </div>
+          </>
+        )}
+        <Send onSendMessage={onSendMessage} />
       </div>
     </div>
   );

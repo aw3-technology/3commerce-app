@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import cn from "classnames";
 import styles from "./Drafts.module.sass";
 import Card from "../../components/Card";
@@ -8,18 +8,94 @@ import Table from "../../components/Table";
 import Product from "../../components/Product";
 import Loader from "../../components/Loader";
 import Panel from "./Panel";
-
-// data
-import { products } from "../../mocks/products";
+import { getProductsByStatus, searchProducts } from "../../services/productService";
 
 const sorting = ["list", "grid"];
 
 const Drafts = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [search, setSearch] = useState("");
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
-    alert();
+  useEffect(() => {
+    fetchDraftProducts();
+  }, []);
+
+  const fetchDraftProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await getProductsByStatus('draft');
+      if (error) {
+        setError(error.message || "Failed to fetch draft products");
+        console.error("Error fetching drafts:", error);
+      } else {
+        const transformedData = data?.map((product) => ({
+          id: product.id,
+          product: product.name,
+          category: product.category || "UI design kit",
+          image: product.image_url || "/images/content/product-pic-1.jpg",
+          image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
+          status: product.status === "published",
+          price: product.price,
+          sales: product.stock_quantity || 0,
+          balance: 0,
+          views: 0,
+          viewsPercent: 0,
+          likesPercent: 0,
+          likes: 0,
+        })) || [];
+        setProducts(transformedData);
+      }
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+      console.error("Error fetching drafts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    if (!search.trim()) {
+      fetchDraftProducts();
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await searchProducts(search);
+      if (error) {
+        setError(error.message || "Search failed");
+        console.error("Error searching products:", error);
+      } else {
+        const draftProducts = data?.filter(p => p.status === 'draft') || [];
+        const transformedData = draftProducts.map((product) => ({
+          id: product.id,
+          product: product.name,
+          category: product.category || "UI design kit",
+          image: product.image_url || "/images/content/product-pic-1.jpg",
+          image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
+          status: product.status === "published",
+          price: product.price,
+          sales: product.stock_quantity || 0,
+          balance: 0,
+          views: 0,
+          viewsPercent: 0,
+          likesPercent: 0,
+          likes: 0,
+        }));
+        setProducts(transformedData);
+      }
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+      console.error("Error searching products:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const [selectedFilters, setSelectedFilters] = useState([]);
@@ -68,29 +144,44 @@ const Drafts = () => {
         }
       >
         <div className={styles.wrapper}>
-          {activeIndex === 0 && <Table items={products} title="Last edited" />}
-          {activeIndex === 1 && (
+          {loading && (
+            <div className={styles.loading}>
+              <Loader />
+              <p>Loading draft products...</p>
+            </div>
+          )}
+          {error && (
+            <div className={styles.error}>
+              <p>Error: {error}</p>
+              <button onClick={fetchDraftProducts} className="button-stroke button-small">
+                Retry
+              </button>
+            </div>
+          )}
+          {!loading && !error && (
             <>
-              <div className={styles.list}>
-                {products.map((x, index) => (
-                  <Product
-                    className={styles.product}
-                    value={selectedFilters.includes(x.id)}
-                    onChange={() => handleChange(x.id)}
-                    item={x}
-                    key={index}
-                    released
-                  />
-                ))}
-              </div>
-              <div className={styles.foot}>
-                <button
-                  className={cn("button-stroke button-small", styles.button)}
-                >
-                  <Loader className={styles.loader} />
-                  <span>Load more</span>
-                </button>
-              </div>
+              {activeIndex === 0 && <Table items={products} title="Last edited" />}
+              {activeIndex === 1 && (
+                <>
+                  <div className={styles.list}>
+                    {products.map((x, index) => (
+                      <Product
+                        className={styles.product}
+                        value={selectedFilters.includes(x.id)}
+                        onChange={() => handleChange(x.id)}
+                        item={x}
+                        key={index}
+                        released
+                      />
+                    ))}
+                  </div>
+                  {products.length === 0 && (
+                    <div className={styles.empty}>
+                      <p>No draft products found</p>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
         </div>

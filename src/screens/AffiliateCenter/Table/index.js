@@ -1,90 +1,38 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Table.module.sass";
 import Item from "./Item";
 import Tooltip from "../../../components/Tooltip";
-
-const items = [
-  {
-    date: "Oct 19, 2021",
-    impressions: {
-      counter: 263,
-      value: 37.8,
-    },
-    clicks: {
-      counter: 72,
-      value: 25.8,
-    },
-    total: 0,
-    epc: 0,
-  },
-  {
-    date: "Oct 21, 2021",
-    impressions: {
-      counter: 20,
-      value: 24.8,
-    },
-    clicks: {
-      counter: 4,
-      value: -33.3,
-    },
-    total: 18,
-    epc: 0.06,
-  },
-  {
-    date: "Oct 22, 2021",
-    impressions: {
-      counter: 252,
-      value: -14.3,
-    },
-    clicks: {
-      counter: 8,
-      value: -9.8,
-    },
-    total: 24,
-    epc: 0.06,
-  },
-  {
-    date: "Oct 24, 2021",
-    impressions: {
-      counter: 55,
-      value: 3.5,
-    },
-    clicks: {
-      counter: 10,
-      value: 12.4,
-    },
-    total: 133,
-    epc: 0.24,
-  },
-  {
-    date: "Oct 27, 2021",
-    impressions: {
-      counter: 123,
-      value: 37.8,
-    },
-    clicks: {
-      counter: 45,
-      value: 25.8,
-    },
-    total: 0,
-    epc: 0,
-  },
-  {
-    date: "Oct 30, 2021",
-    impressions: {
-      counter: 22,
-      value: 24.8,
-    },
-    clicks: {
-      counter: 14,
-      value: -33.3,
-    },
-    total: 18,
-    epc: 0.06,
-  },
-];
+import Loader from "../../../components/Loader";
+import { getAffiliatePerformanceTable } from "../../../services/affiliateService";
 
 const Table = () => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchTableData();
+  }, []);
+
+  const fetchTableData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await getAffiliatePerformanceTable(30);
+
+      if (!error && data) {
+        setItems(data);
+      } else {
+        setError("Failed to load affiliate data");
+        console.error("Error fetching affiliate table:", error);
+      }
+    } catch (err) {
+      setError(err.message || "An unexpected error occurred");
+      console.error("Error fetching affiliate table:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className={styles.wrapper}>
       <div className={styles.table}>
@@ -119,7 +67,21 @@ const Table = () => {
             />
           </div>
         </div>
-        {items.map((x, index) => (
+        {loading && (
+          <div className={styles.loading}>
+            <Loader />
+            <p>Loading affiliate performance data...</p>
+          </div>
+        )}
+        {error && (
+          <div className={styles.error}>
+            <p>Error: {error}</p>
+            <button onClick={fetchTableData} className="button-stroke button-small">
+              Retry
+            </button>
+          </div>
+        )}
+        {!loading && !error && items.length > 0 && items.map((x, index) => (
           <div className={styles.row} key={index}>
             <div className={styles.col}>{x.date}</div>
             <div className={styles.col}>
@@ -136,6 +98,11 @@ const Table = () => {
             <div className={styles.col}>${x.epc.toFixed(2)}</div>
           </div>
         ))}
+        {!loading && !error && items.length === 0 && (
+          <div className={styles.empty}>
+            <p>No affiliate performance data available</p>
+          </div>
+        )}
       </div>
     </div>
   );

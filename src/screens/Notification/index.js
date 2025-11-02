@@ -18,7 +18,7 @@ const Notification = () => {
     return (
         <div className={styles.row}>
             <div className={styles.col}>
-                <List className={styles.card} />
+                <List className={styles.card} selectedFilters={selectedFilters} />
             </div>
             <div className={styles.col}>
                 <Filters

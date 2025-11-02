@@ -11,46 +11,30 @@ import {
 } from "recharts";
 import useDarkMode from "use-dark-mode";
 
-const data = [
-    {
-        name: "22",
-        clicks: 57,
-    },
-    {
-        name: "23",
-        clicks: 42,
-    },
-    {
-        name: "24",
-        clicks: 22,
-    },
-    {
-        name: "25",
-        clicks: 38,
-    },
-    {
-        name: "26",
-        clicks: 56,
-    },
-    {
-        name: "27",
-        clicks: 54,
-    },
-    {
-        name: "28",
-        clicks: 76,
-    },
-];
-
-const Chart = () => {
+const Chart = ({ data = [] }) => {
     const darkMode = useDarkMode(false);
+
+    // Transform data to the expected format
+    const chartData = data.length > 0 ? data.map(item => ({
+        name: item.name,
+        clicks: item.value || 0
+    })) : [
+        { name: "22", clicks: 0 },
+        { name: "23", clicks: 0 },
+        { name: "24", clicks: 0 },
+        { name: "25", clicks: 0 },
+        { name: "26", clicks: 0 },
+        { name: "27", clicks: 0 },
+        { name: "28", clicks: 0 },
+    ];
+
     return (
         <div className={styles.chart}>
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     width={500}
                     height={300}
-                    data={data}
+                    data={chartData}
                     margin={{
                         top: 0,
                         right: 0,

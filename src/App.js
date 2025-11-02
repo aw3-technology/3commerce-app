@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import "./styles/app.sass";
 import Page from "./components/Page";
+import PrivateRoute from "./components/PrivateRoute";
+import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./screens/Home";
 import ProductsDashboard from "./screens/ProductsDashboard";
 import NewProduct from "./screens/NewProduct";
@@ -28,174 +30,217 @@ import PageList from "./screens/PageList";
 
 function App() {
     return (
-        <Routes>
-            <Route path="/">
-                <Route
-                    index
-                    element={
-                        <Page title="Dashboard">
-                            <Home />
-                        </Page>
-                    }
-                />
+        <AuthProvider>
+            <Routes>
+                <Route path="/">
+                    <Route
+                        index
+                        element={
+                            <PrivateRoute>
+                                <Page title="Dashboard">
+                                    <Home />
+                                </Page>
+                            </PrivateRoute>
+                        }
+                    />
                 <Route
                     path="products/dashboard"
                     element={
-                        <Page title="Products dashboard">
-                            <ProductsDashboard />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Products dashboard">
+                                <ProductsDashboard />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="products/add"
                     element={
-                        <Page title="New product">
-                            <NewProduct />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="New product">
+                                <NewProduct />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="products/drafts"
                     element={
-                        <Page title="Drafts">
-                            <Drafts />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Drafts">
+                                <Drafts />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="products/released"
                     element={
-                        <Page title="Released">
-                            <Released />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Released">
+                                <Released />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="products/comments"
                     element={
-                        <Page title="Comments">
-                            <Comments />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Comments">
+                                <Comments />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="products/scheduled"
                     element={
-                        <Page title="Scheduled">
-                            <Scheduled />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Scheduled">
+                                <Scheduled />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="customers/overview"
                     element={
-                        <Page title="Customers">
-                            <Customers />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Customers">
+                                <Customers />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="customers/customer-list"
                     element={
-                        <Page title="Customer list">
-                            <CustomerList />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Customer list">
+                                <CustomerList />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="shop"
                     element={
-                        <Page wide>
-                            <Shop />
-                        </Page>
+                        <PrivateRoute>
+                            <Page wide>
+                                <Shop />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="income/earning"
                     element={
-                        <Page title="Earning">
-                            <Earning />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Earning">
+                                <Earning />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="income/refunds"
                     element={
-                        <Page title="Refunds">
-                            <Refunds />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Refunds">
+                                <Refunds />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="income/payouts"
                     element={
-                        <Page title="Payouts">
-                            <Payouts />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Payouts">
+                                <Payouts />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="income/statements"
                     element={
-                        <Page title="Statements">
-                            <Statements />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Statements">
+                                <Statements />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="promote"
                     element={
-                        <Page title="Promote">
-                            <Promote />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Promote">
+                                <Promote />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="notification"
                     element={
-                        <Page title="Notification">
-                            <Notification />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Notification">
+                                <Notification />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="settings"
                     element={
-                        <Page title="Settings">
-                            <Settings />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Settings">
+                                <Settings />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="upgrade-to-pro"
                     element={
-                        <Page title="Upgrade to Pro">
-                            <UpgradeToPro />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Upgrade to Pro">
+                                <UpgradeToPro />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="message-center"
                     element={
-                        <Page title="Message center">
-                            <MessageCenter />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Message center">
+                                <MessageCenter />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="explore-creators"
                     element={
-                        <Page title="Explore creators">
-                            <ExploreCreators />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Explore creators">
+                                <ExploreCreators />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route
                     path="affiliate-center"
                     element={
-                        <Page title="Affiliate center">
-                            <AffiliateCenter />
-                        </Page>
+                        <PrivateRoute>
+                            <Page title="Affiliate center">
+                                <AffiliateCenter />
+                            </Page>
+                        </PrivateRoute>
                     }
                 />
                 <Route path="sign-up" element={<SignUp />} />
@@ -203,6 +248,7 @@ function App() {
                 <Route path="pagelist" element={<PageList />} />
             </Route>
         </Routes>
+        </AuthProvider>
     );
 }
 
