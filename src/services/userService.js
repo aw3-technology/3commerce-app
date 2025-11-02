@@ -68,20 +68,48 @@ export const getUserProfile = async (userId) => {
  */
 export const upsertUserProfile = async (userId, profileData) => {
   try {
-    const { data, error } = await supabase
+    // First, try to update
+    const { data: existingProfile } = await supabase
       .from('user_profiles')
-      .upsert({
-        user_id: userId,
-        ...profileData,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
-      })
-      .select()
+      .select('id')
+      .eq('user_id', userId)
       .single();
+
+    let data, error;
+
+    if (existingProfile) {
+      // Update existing profile
+      const result = await supabase
+        .from('user_profiles')
+        .update({
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    } else {
+      // Insert new profile
+      const result = await supabase
+        .from('user_profiles')
+        .insert({
+          user_id: userId,
+          ...profileData,
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      data = result.data;
+      error = result.error;
+    }
 
     return { data, error };
   } catch (error) {
+    console.error('Error upserting profile:', error);
     return { data: null, error };
   }
 };

@@ -11,8 +11,10 @@ if (process.env.NODE_ENV === 'development') {
   const originalError = console.error;
 
   console.warn = (...args) => {
-    if (typeof args[0] === 'string' &&
-        args[0].includes("Can't call setState on a component that is not yet mounted")) {
+    const message = args[0];
+    if (typeof message === 'string' &&
+        message.includes("Can't call setState") &&
+        message.includes("not yet mounted")) {
       // Suppress this specific warning from react-draft-wysiwyg
       return;
     }
@@ -20,11 +22,14 @@ if (process.env.NODE_ENV === 'development') {
   };
 
   console.error = (...args) => {
-    if (typeof args[0] === 'string' &&
-        args[0].includes("Can't call setState on a component that is not yet mounted")) {
-      // Suppress this specific warning from react-draft-wysiwyg
+    const message = args[0];
+    // Suppress react-draft-wysiwyg setState warnings
+    if (typeof message === 'string' &&
+        message.includes("Can't call setState") &&
+        message.includes("not yet mounted")) {
       return;
     }
+    // Don't suppress other errors - pass them through
     originalError.apply(console, args);
   };
 }

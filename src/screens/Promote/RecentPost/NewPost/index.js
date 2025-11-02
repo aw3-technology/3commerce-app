@@ -3,6 +3,7 @@ import styles from "./NewPost.module.sass";
 import cn from "classnames";
 import Icon from "../../../../components/Icon";
 import { createPost } from "../../../../services/promotionService";
+import supabase from "../../../../config/supabaseClient";
 
 const socialPlatforms = [
   {
@@ -14,6 +15,16 @@ const socialPlatforms = [
     id: "twitter",
     avatar: "/images/content/avatar.jpg",
     icon: "twitter-fill",
+  },
+  {
+    id: "instagram",
+    avatar: "/images/content/avatar.jpg",
+    icon: "instagram",
+  },
+  {
+    id: "linkedin",
+    avatar: "/images/content/avatar.jpg",
+    icon: "linkedin",
   },
 ];
 
