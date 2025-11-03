@@ -11,14 +11,20 @@ const Follower = ({ className, item, followers }) => {
   const displayName = item.name || item.man || "Unknown User";
   const productCount = item.products || 0;
   const followerCount = item.followers || 0;
-  const avatarUrl = item.avatar || "/images/content/avatar.jpg";
+  const avatarUrl = item.avatar && item.avatar !== "/images/content/avatar.jpg" ? item.avatar : null;
   const gallery = item.gallery || [];
 
   return (
     <div className={cn(styles.follower, className)}>
       <div className={styles.details}>
         <div className={styles.avatar}>
-          <img src={avatarUrl} alt="Avatar" />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" />
+          ) : (
+            <div className={styles.placeholder}>
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
         <div className={styles.wrap}>
           <div className={styles.man}>{displayName}</div>

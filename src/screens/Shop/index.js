@@ -159,7 +159,7 @@ const Shop = () => {
           return {
             id: creator.id,
             name: creator.name || "Unknown Creator",
-            avatar: creator.avatar_url || "/images/content/avatar.jpg",
+            avatar: creator.avatar_url || null,
             products: creator.products?.length || 0,
             followers: creator.followers || 0,
             gallery: gallery,
@@ -202,7 +202,7 @@ const Shop = () => {
           return {
             id: creator.id,
             name: creator.name || "Unknown Creator",
-            avatar: creator.avatar_url || "/images/content/avatar.jpg",
+            avatar: creator.avatar_url || null,
             products: creator.products?.length || 0,
             followers: creator.followers || 0,
             gallery: gallery,

@@ -80,14 +80,20 @@ const Profile = () => {
 
   const displayName = user?.profile?.display_name || user?.email || "User";
   const bio = user?.profile?.bio || "No bio available";
-  const avatarUrl = user?.profile?.avatar_url || "/images/content/avatar.jpg";
+  const avatarUrl = user?.profile?.avatar_url || user?.user_metadata?.avatar_url || null;
   const socials = getSocials();
 
   return (
     <div className={styles.profile}>
       <div className={styles.details}>
         <div className={styles.avatar}>
-          <img src={avatarUrl} alt="Avatar" />
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="Avatar" />
+          ) : (
+            <div className={styles.placeholder}>
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+          )}
           <button className={styles.add}>
             <Icon name="add" />
           </button>
