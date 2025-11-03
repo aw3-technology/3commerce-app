@@ -115,32 +115,46 @@ export const updateOrder = async (orderId, updates) => {
 };
 
 /**
- * Get order statistics
+ * Get order statistics for the current user
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getOrderStats = async () => {
   try {
-    // Total orders
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
+    // Total orders for user's customers
     const { count: totalCount, error: totalError } = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true });
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id);
 
-    // Completed orders
+    // Completed orders for user's customers
     const { count: completedCount, error: completedError } = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id)
       .eq('status', 'completed');
 
-    // Pending orders
+    // Pending orders for user's customers
     const { count: pendingCount, error: pendingError } = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true })
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id)
       .eq('status', 'pending');
 
-    // Total revenue
+    // Total revenue for user's completed orders
     const { data: revenueData, error: revenueError } = await supabase
       .from('orders')
-      .select('total_amount')
+      .select('total_amount, customers!inner(user_id)')
+      .eq('customers.user_id', user.id)
       .eq('status', 'completed');
 
     if (totalError || completedError || pendingError || revenueError) {
@@ -167,15 +181,26 @@ export const getOrderStats = async () => {
 };
 
 /**
- * Get transactions/payments
+ * Get transactions/payments for the current user
  * @param {Object} options - Query options
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getTransactions = async (options = {}) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('transactions')
-      .select('*, orders(*), customers(*)');
+      .select('*, orders!inner(*), customers!inner(*)')
+      .eq('customers.user_id', user.id);
 
     if (options.limit) {
       query = query.limit(options.limit);
@@ -192,15 +217,26 @@ export const getTransactions = async (options = {}) => {
 };
 
 /**
- * Get earnings over time
+ * Get earnings over time for the current user
  * @param {string} period - Time period (day, week, month, year)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getEarnings = async (period = 'month') => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('orders')
-      .select('created_at, total_amount')
+      .select('created_at, total_amount, customers!inner(user_id)')
+      .eq('customers.user_id', user.id)
       .eq('status', 'completed')
       .order('created_at', { ascending: true });
 
@@ -211,7 +247,7 @@ export const getEarnings = async (period = 'month') => {
 };
 
 /**
- * Get refund requests with optional filtering
+ * Get refund requests with optional filtering for the current user
  * @param {Object} options - Query options
  * @param {string} options.status - Filter by status (pending, approved, rejected, processed)
  * @param {number} options.limit - Limit results
@@ -220,6 +256,16 @@ export const getEarnings = async (period = 'month') => {
  */
 export const getRefunds = async (options = {}) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('refunds')
       .select(`
@@ -236,13 +282,15 @@ export const getRefunds = async (options = {}) => {
             category
           )
         ),
-        customers (
+        customers!inner (
           id,
           name,
           email,
-          avatar_url
+          avatar_url,
+          user_id
         )
-      `);
+      `)
+      .eq('customers.user_id', user.id);
 
     // Filter by status if provided
     // "Open requests" = pending status
@@ -335,15 +383,26 @@ export const processRefund = async (refundId, status) => {
 };
 
 /**
- * Get refund count by status
+ * Get refund count by status for the current user
  * @param {string} statusFilter - 'open' or 'closed'
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getRefundCount = async (statusFilter = null) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('refunds')
-      .select('*', { count: 'exact', head: true });
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id);
 
     if (statusFilter === 'open') {
       query = query.eq('status', 'pending');

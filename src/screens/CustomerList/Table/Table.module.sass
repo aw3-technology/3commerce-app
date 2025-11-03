@@ -56,3 +56,54 @@
         .loader
             transform: scale(.8)
             margin: 0 18px 0 8px
+
+.loadingContainer
+    display: flex
+    justify-content: center
+    align-items: center
+    padding: 80px 20px
+    min-height: 300px
+    width: 100%
+    +t
+        padding: 60px 20px
+        min-height: 200px
+
+.empty
+    display: flex
+    flex-direction: column
+    justify-content: center
+    align-items: center
+    padding: 80px 20px
+    min-height: 300px
+    width: 100%
+    text-align: center
+    color: $n4
+    +hairline1
+    +t
+        padding: 60px 20px
+        min-height: 200px
+        +base2
+    +dark
+        color: $n5
+
+.emptyIcon
+    margin-bottom: 20px
+    color: $n4
+    opacity: 0.5
+    +dark
+        color: $n5
+
+.emptyTitle
+    margin-bottom: 8px
+    +base1-s
+    color: $n7
+    font-weight: 600
+    +dark
+        color: $n1
+
+.emptyText
+    +caption1
+    color: $n4
+    max-width: 300px
+    +dark
+        color: $n5

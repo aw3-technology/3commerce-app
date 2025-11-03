@@ -3,6 +3,7 @@ import styles from "./Table.module.sass";
 import cn from "classnames";
 import Checkbox from "../../../components/Checkbox";
 import Loader from "../../../components/Loader";
+import Icon from "../../../components/Icon";
 import Row from "./Row";
 
 const Table = ({
@@ -94,7 +95,15 @@ const Table = ({
             <Loader />
           </div>
         ) : customers.length === 0 ? (
-          <div className={styles.empty}>No customers found</div>
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}>
+              <Icon name="profile-circle" size="48" />
+            </div>
+            <div className={styles.emptyTitle}>No customers yet</div>
+            <div className={styles.emptyText}>
+              Customers will appear here once they make their first purchase
+            </div>
+          </div>
         ) : (
           customers.map((customer, index) => {
             const transformedCustomer = transformCustomer(customer);

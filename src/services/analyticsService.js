@@ -97,14 +97,25 @@ export const getSalesData = async (period = 'month') => {
 };
 
 /**
- * Get product views analytics
+ * Get product views analytics for the current user
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getProductViews = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('product_views')
-      .select('*, products(*)')
+      .select('*, products!inner(*)')
+      .eq('products.user_id', user.id)
       .order('view_count', { ascending: false })
       .limit(10);
 
@@ -173,14 +184,25 @@ export const getCustomerGrowth = async () => {
 };
 
 /**
- * Get traffic sources
+ * Get traffic sources for the current user
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getTrafficSources = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('traffic_sources')
       .select('*')
+      .eq('user_id', user.id)
       .order('visitors', { ascending: false });
 
     return { data, error };
@@ -190,18 +212,32 @@ export const getTrafficSources = async () => {
 };
 
 /**
- * Get conversion rate
+ * Get conversion rate for the current user
+ * Note: Sessions are global (not user-specific) so we only filter orders
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getConversionRate = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
+    // Sessions are global - track all visitors to the platform
     const { count: totalVisitors, error: visitorsError } = await supabase
       .from('sessions')
       .select('*', { count: 'exact', head: true });
 
+    // Orders should be filtered by user
     const { count: totalOrders, error: ordersError } = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true });
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id);
 
     if (visitorsError || ordersError) {
       return {

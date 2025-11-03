@@ -183,11 +183,21 @@ export const getPostsByPeriod = async (period = '7days') => {
 // ============================================
 
 /**
- * Get promotion insights/overview statistics
+ * Get promotion insights/overview statistics for the current user
  * @param {string} period - Time period ('7days', 'month', 'all')
  * @returns {Promise<{data: Object, error: Error}>}
  */
 export const getPromotionInsights = async (period = '7days') => {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      data: null,
+      error: { message: 'User must be authenticated' }
+    };
+  }
+
   const now = new Date();
   let startDate;
 
@@ -207,7 +217,8 @@ export const getPromotionInsights = async (period = '7days') => {
 
   let query = supabase
     .from('social_posts')
-    .select('people_reached, engagement_rate, comments_count, link_clicks, views');
+    .select('people_reached, engagement_rate, comments_count, link_clicks, views')
+    .eq('user_id', user.id);
 
   if (startDate) {
     query = query.gte('created_at', startDate.toISOString());
@@ -235,11 +246,21 @@ export const getPromotionInsights = async (period = '7days') => {
 };
 
 /**
- * Get detailed insights with trend data
+ * Get detailed insights with trend data for the current user
  * @param {string} period - Time period
  * @returns {Promise<{data: Object, error: Error}>}
  */
 export const getDetailedInsights = async (period = '7days') => {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      data: null,
+      error: { message: 'User must be authenticated' }
+    };
+  }
+
   const now = new Date();
   const previousPeriodStart = new Date();
   let currentPeriodStart;
@@ -261,10 +282,11 @@ export const getDetailedInsights = async (period = '7days') => {
       previousPeriodStart.setDate(previousPeriodStart.getDate() - 14);
   }
 
-  // Get current period data
+  // Get current period data for current user
   let currentQuery = supabase
     .from('social_posts')
-    .select('people_reached, engagement_rate, comments_count, link_clicks, views');
+    .select('people_reached, engagement_rate, comments_count, link_clicks, views')
+    .eq('user_id', user.id);
 
   if (currentPeriodStart) {
     currentQuery = currentQuery.gte('created_at', currentPeriodStart.toISOString());
@@ -276,12 +298,17 @@ export const getDetailedInsights = async (period = '7days') => {
     return { data: null, error: currentError };
   }
 
-  // Get previous period data for comparison
+  // Get previous period data for comparison (current user only)
   let previousQuery = supabase
     .from('social_posts')
     .select('people_reached, engagement_rate, comments_count, link_clicks, views')
-    .gte('created_at', previousPeriodStart.toISOString())
-    .lt('created_at', currentPeriodStart.toISOString());
+    .eq('user_id', user.id);
+
+  if (currentPeriodStart) {
+    previousQuery = previousQuery
+      .gte('created_at', previousPeriodStart.toISOString())
+      .lt('created_at', currentPeriodStart.toISOString());
+  }
 
   const { data: previousPosts } = await previousQuery;
 
