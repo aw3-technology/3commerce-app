@@ -101,6 +101,7 @@ const User = ({ className }) => {
         if (user) {
             loadUserProfile();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     // Refresh profile data when the dropdown becomes visible
@@ -108,6 +109,7 @@ const User = ({ className }) => {
         if (visible && user) {
             loadUserProfile();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [visible]);
 
     // Refresh profile data when navigating between pages
@@ -115,6 +117,7 @@ const User = ({ className }) => {
         if (user) {
             loadUserProfile();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname]);
 
     const handleLogout = async () => {
