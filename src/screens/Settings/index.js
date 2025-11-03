@@ -7,6 +7,8 @@ import ProfileInformation from "./ProfileInformation";
 import Login from "./Login";
 import Notifications from "./Notifications";
 import Payment from "./Payment";
+import Printful from "./Printful";
+import Unsplash from "./Unsplash";
 import { upsertUserProfile, getCurrentUser, updateUserEmail } from "../../services/userService";
 
 const Settings = () => {
@@ -45,6 +47,11 @@ const Settings = () => {
       action: () =>
         scrollToPayment.current.scrollIntoView({ behavior: "smooth" }),
     },
+    {
+      title: "Integrations",
+      action: () =>
+        scrollToPrintful.current.scrollIntoView({ behavior: "smooth" }),
+    },
   ];
   const options = [];
   navigation.map((x) => options.push(x.title));
@@ -55,6 +62,7 @@ const Settings = () => {
   const scrollToLogin = useRef(null);
   const scrollToNotifications = useRef(null);
   const scrollToPayment = useRef(null);
+  const scrollToPrintful = useRef(null);
 
   const handleClick = (x, index) => {
     setActiveIndex(index);
@@ -234,6 +242,15 @@ const Settings = () => {
                 paymentData={paymentData}
                 setPaymentData={setPaymentData}
               />
+            </div>
+            <div
+              className={cn(styles.item, {
+                [styles.active]: activeTab === options[4],
+              })}
+            >
+              <div className={styles.anchor} ref={scrollToPrintful}></div>
+              <Printful />
+              <Unsplash />
             </div>
           </div>
           <button

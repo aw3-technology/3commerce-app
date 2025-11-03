@@ -219,21 +219,22 @@ const Drafts = () => {
               )}
               {activeIndex === 1 && (
                 <>
-                  <div className={styles.list}>
-                    {products.map((x, index) => (
-                      <Product
-                        className={styles.product}
-                        value={selectedFilters.includes(x.id)}
-                        onChange={() => handleChange(x.id)}
-                        item={x}
-                        key={index}
-                        released
-                      />
-                    ))}
-                  </div>
-                  {products.length === 0 && (
+                  {products.length === 0 ? (
                     <div className={styles.empty}>
                       <p>No draft products found</p>
+                    </div>
+                  ) : (
+                    <div className={styles.list}>
+                      {products.map((x, index) => (
+                        <Product
+                          className={styles.product}
+                          value={selectedFilters.includes(x.id)}
+                          onChange={() => handleChange(x.id)}
+                          item={x}
+                          key={index}
+                          released
+                        />
+                      ))}
                     </div>
                   )}
                 </>

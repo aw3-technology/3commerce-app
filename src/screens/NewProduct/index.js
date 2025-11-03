@@ -10,6 +10,7 @@ import Price from "./Price";
 import CategoryAndAttibutes from "./CategoryAndAttibutes";
 import ProductFiles from "./ProductFiles";
 import Discussion from "./Discussion";
+import PrintfulProduct from "./PrintfulProduct";
 import Preview from "./Preview";
 import Panel from "./Panel";
 import { createProduct } from "../../services/productService";
@@ -40,6 +41,10 @@ const NewProduct = () => {
         compatibility: [],
         tags: [{ id: "Geometry", text: "Geometry" }],
         discussionEnabled: false,
+        isPrintfulProduct: false,
+        printfulProduct: null,
+        printfulVariants: [],
+        unsplashAttribution: null,
     });
 
     // Update product data helper
@@ -66,8 +71,20 @@ const NewProduct = () => {
                 image_url: productData.imageUrl || "/images/content/product-pic-1.jpg",
                 category: productData.category !== "Select category" ? productData.category : null,
                 status: status,
-                stock_quantity: 100, // Default stock
+                stock_quantity: productData.isPrintfulProduct ? 9999 : 100, // Unlimited stock for Printful
                 published_at: status === "published" ? new Date().toISOString() : null,
+                is_printful_product: productData.isPrintfulProduct || false,
+                printful_metadata: productData.isPrintfulProduct ? {
+                    product_id: productData.printfulProduct?.id,
+                    product_name: productData.printfulProduct?.name,
+                    variants: productData.printfulVariants?.map(v => ({
+                        id: v.id,
+                        name: v.name,
+                        price: v.price,
+                        color: v.color,
+                        size: v.size
+                    })) || []
+                } : null,
             };
 
             const { data, error } = await createProduct(productPayload);
@@ -184,6 +201,11 @@ const NewProduct = () => {
                         updateProductData={updateProductData}
                     />
                     <CategoryAndAttibutes
+                        className={styles.card}
+                        productData={productData}
+                        updateProductData={updateProductData}
+                    />
+                    <PrintfulProduct
                         className={styles.card}
                         productData={productData}
                         updateProductData={updateProductData}

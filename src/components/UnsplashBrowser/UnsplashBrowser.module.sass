@@ -1,0 +1,270 @@
+@import ../../styles/helpers
+
+.browser
+  background: $n1
+  border-radius: 16px
+  padding: 32px
+  max-height: 80vh
+  overflow-y: auto
+  +dark
+    background: $n7
+
+.header
+  margin-bottom: 24px
+
+.title
+  font-size: 24px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 8px
+  +dark
+    color: $n
+
+.subtitle
+  font-size: 14px
+  color: $n4
+  +dark
+    color: $shades1
+
+.searchSection
+  margin-bottom: 20px
+
+.searchForm
+  display: flex
+  gap: 8px
+  margin-bottom: 16px
+
+.searchInput
+  flex: 1
+  padding: 12px 16px
+  border: 1px solid $n3
+  border-radius: 8px
+  font-size: 14px
+  color: $n5
+  background: $n
+  +dark
+    background: $n7
+    border-color: $n6
+    color: $n
+
+  &:focus
+    outline: none
+    border-color: $p1
+
+.searchButton
+  flex-shrink: 0
+
+.clearButton
+  flex-shrink: 0
+
+.filters
+  display: flex
+  gap: 16px
+  flex-wrap: wrap
+
+.filterGroup
+  display: flex
+  align-items: center
+  gap: 8px
+
+.filterLabel
+  font-size: 14px
+  font-weight: 500
+  color: $n4
+  +dark
+    color: $shades1
+
+.filterButtons
+  display: flex
+  gap: 4px
+
+.filterButton
+  padding: 6px 12px
+  border: 1px solid $n3
+  border-radius: 6px
+  font-size: 13px
+  color: $n4
+  background: transparent
+  cursor: pointer
+  transition: all 0.3s
+  +dark
+    border-color: $n6
+    color: $shades1
+
+  &:hover
+    border-color: $p1
+    color: $p1
+
+  &.active
+    background: $p1
+    border-color: $p1
+    color: $n
+
+.categories
+  display: flex
+  gap: 8px
+  flex-wrap: wrap
+  align-items: center
+  margin-bottom: 20px
+  padding-bottom: 20px
+  border-bottom: 1px solid $n3
+  +dark
+    border-color: $n6
+
+.categoriesLabel
+  font-size: 14px
+  font-weight: 500
+  color: $n4
+  +dark
+    color: $shades1
+
+.categoryButton
+  padding: 8px 16px
+  border: 1px solid $n3
+  border-radius: 8px
+  font-size: 13px
+  color: $n4
+  background: transparent
+  cursor: pointer
+  transition: all 0.3s
+  text-transform: capitalize
+  +dark
+    border-color: $n6
+    color: $shades1
+
+  &:hover
+    border-color: $p1
+    color: $p1
+
+  &.active
+    background: $p1
+    border-color: $p1
+    color: $n
+
+.activeSearch
+  margin-bottom: 16px
+  padding: 12px
+  background: rgba($p1, 0.1)
+  border-radius: 8px
+  font-size: 14px
+  color: $n5
+  +dark
+    color: $n
+
+  strong
+    color: $p1
+
+.photoGrid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))
+  gap: 16px
+  margin-bottom: 24px
+
+.photoCard
+  position: relative
+  border-radius: 12px
+  overflow: hidden
+  cursor: pointer
+  transition: all 0.3s
+  background: $n2
+  +dark
+    background: $n6
+
+  &:hover
+    transform: translateY(-4px)
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15)
+
+    .photoOverlay
+      opacity: 1
+
+.photoImageWrapper
+  position: relative
+  width: 100%
+  padding-bottom: 100%
+  overflow: hidden
+
+.photoImage
+  position: absolute
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  object-fit: cover
+
+.photoOverlay
+  position: absolute
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.7) 100%)
+  opacity: 0
+  transition: opacity 0.3s
+  display: flex
+  align-items: flex-end
+  padding: 16px
+
+.photoInfo
+  width: 100%
+
+.photoAuthor
+  font-size: 13px
+  font-weight: 500
+  color: $n
+  display: block
+
+.loadMoreSection
+  text-align: center
+  margin-bottom: 24px
+
+.loadMoreButton
+  min-width: 200px
+
+.footer
+  text-align: center
+  padding-top: 16px
+  border-top: 1px solid $n3
+  +dark
+    border-color: $n6
+
+.attribution
+  font-size: 13px
+  color: $n4
+  +dark
+    color: $shades1
+
+  a
+    color: $p1
+    text-decoration: underline
+
+    &:hover
+      text-decoration: none
+
+.loading
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $n4
+  +dark
+    color: $shades1
+
+.error
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $p3
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 16px
+
+.retryButton
+  margin-top: 8px
+
+.empty
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $n4
+  +dark
+    color: $shades1

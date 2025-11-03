@@ -1,0 +1,190 @@
+@import ../../styles/helpers
+
+.browser
+  background: $n1
+  border-radius: 16px
+  padding: 32px
+  +dark
+    background: $n7
+
+.header
+  margin-bottom: 24px
+
+.title
+  font-size: 24px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 8px
+  +dark
+    color: $n
+
+.subtitle
+  font-size: 14px
+  color: $n4
+  +dark
+    color: $shades1
+
+.filters
+  margin-bottom: 24px
+
+.search
+  margin-bottom: 16px
+
+.searchInput
+  width: 100%
+  padding: 12px 16px
+  border: 1px solid $n3
+  border-radius: 8px
+  font-size: 14px
+  color: $n5
+  background: $n
+  +dark
+    background: $n7
+    border-color: $n6
+    color: $n
+
+  &:focus
+    outline: none
+    border-color: $p1
+
+.categories
+  display: flex
+  gap: 8px
+  flex-wrap: wrap
+
+.categoryButton
+  padding: 8px 16px
+  border: 1px solid $n3
+  border-radius: 8px
+  font-size: 14px
+  color: $n4
+  background: transparent
+  cursor: pointer
+  transition: all 0.3s
+  text-transform: capitalize
+  +dark
+    border-color: $n6
+    color: $shades1
+
+  &:hover
+    border-color: $p1
+    color: $p1
+
+  &.active
+    background: $p1
+    border-color: $p1
+    color: $n
+
+.productGrid
+  display: grid
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))
+  gap: 16px
+  margin-bottom: 24px
+
+.productCard
+  background: $n
+  border: 1px solid $n3
+  border-radius: 12px
+  overflow: hidden
+  cursor: pointer
+  transition: all 0.3s
+  +dark
+    background: $n7
+    border-color: $n6
+
+  &:hover
+    transform: translateY(-4px)
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1)
+    border-color: $p1
+
+.productImage
+  width: 100%
+  height: 200px
+  background: $n2
+  display: flex
+  align-items: center
+  justify-content: center
+  overflow: hidden
+  +dark
+    background: $n6
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+
+.noImage
+  color: $n4
+  font-size: 14px
+  +dark
+    color: $shades1
+
+.productInfo
+  padding: 16px
+
+.productName
+  font-size: 14px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 8px
+  line-height: 1.4
+  +dark
+    color: $n
+
+.productType
+  font-size: 12px
+  color: $n4
+  margin-bottom: 4px
+  text-transform: capitalize
+  +dark
+    color: $shades1
+
+.productBrand
+  font-size: 12px
+  color: $n4
+  font-style: italic
+  +dark
+    color: $shades1
+
+.footer
+  text-align: center
+  padding-top: 16px
+  border-top: 1px solid $n3
+  +dark
+    border-color: $n6
+
+.footerText
+  font-size: 14px
+  color: $n4
+  +dark
+    color: $shades1
+
+.loading
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $n4
+  +dark
+    color: $shades1
+
+.error
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $p3
+  display: flex
+  flex-direction: column
+  align-items: center
+  gap: 16px
+
+.retryButton
+  margin-top: 8px
+
+.empty
+  grid-column: 1 / -1
+  text-align: center
+  padding: 48px
+  font-size: 16px
+  color: $n4
+  +dark
+    color: $shades1

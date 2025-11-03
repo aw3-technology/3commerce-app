@@ -1,0 +1,184 @@
+@import ../../../styles/helpers
+
+.card
+  margin-bottom: 32px
+
+.enableSection
+  padding: 16px
+  background: $n2
+  border-radius: 8px
+  +dark
+    background: $n7
+
+.checkbox
+  margin-bottom: 12px
+
+.description
+  font-size: 14px
+  color: $n4
+  line-height: 1.6
+  +dark
+    color: $shades1
+
+.printfulContent
+  margin-top: 24px
+  padding-top: 24px
+  border-top: 1px solid $n3
+  +dark
+    border-color: $n6
+
+.selectPrompt
+  text-align: center
+  padding: 32px
+  background: $n2
+  border-radius: 8px
+  +dark
+    background: $n7
+
+  p
+    margin-bottom: 16px
+    color: $n4
+    +dark
+      color: $shades1
+
+.browseButton
+  margin-top: 8px
+
+.selectedProduct
+  padding: 16px
+
+.productHeader
+  display: flex
+  justify-content: space-between
+  align-items: center
+  margin-bottom: 16px
+
+.productTitle
+  font-size: 16px
+  font-weight: 600
+  color: $n5
+  +dark
+    color: $n
+
+.changeButton
+  margin-left: auto
+
+.productDisplay
+  display: flex
+  gap: 16px
+  padding: 16px
+  background: $n2
+  border-radius: 8px
+  margin-bottom: 24px
+  +dark
+    background: $n7
+
+.productImage
+  width: 120px
+  height: 120px
+  object-fit: cover
+  border-radius: 8px
+  flex-shrink: 0
+
+.productDetails
+  flex: 1
+
+.productName
+  font-size: 18px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 8px
+  +dark
+    color: $n
+
+.productDescription
+  font-size: 14px
+  color: $n4
+  line-height: 1.6
+  +dark
+    color: $shades1
+
+.variantsSection
+  margin-top: 24px
+
+.variantsTitle
+  font-size: 16px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 16px
+  display: flex
+  align-items: center
+  gap: 8px
+  +dark
+    color: $n
+
+.variantCount
+  font-size: 14px
+  font-weight: 400
+  color: $n4
+  +dark
+    color: $shades1
+
+.variantsList
+  display: grid
+  gap: 12px
+
+.variantCard
+  display: flex
+  justify-content: space-between
+  align-items: center
+  padding: 16px
+  border: 2px solid $n3
+  border-radius: 8px
+  cursor: pointer
+  transition: all 0.3s
+  +dark
+    border-color: $n6
+
+  &:hover
+    border-color: $p1
+    background: $n2
+    +dark
+      background: $n7
+
+  &.selected
+    border-color: $p1
+    background: rgba($p1, 0.05)
+
+.variantInfo
+  display: flex
+  align-items: center
+  gap: 12px
+  flex: 1
+
+.variantCheckbox
+  flex-shrink: 0
+
+.variantDetails
+  flex: 1
+
+.variantName
+  font-size: 14px
+  font-weight: 600
+  color: $n5
+  margin-bottom: 4px
+  +dark
+    color: $n
+
+.variantMeta
+  font-size: 12px
+  color: $n4
+  +dark
+    color: $shades1
+
+.variantPrice
+  font-size: 16px
+  font-weight: 600
+  color: $n5
+  +dark
+    color: $n
+
+.modal
+  .browser
+    max-height: 80vh
+    overflow-y: auto
