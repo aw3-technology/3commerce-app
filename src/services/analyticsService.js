@@ -461,3 +461,27 @@ export const getDeviceAnalytics = async () => {
     return { data: null, error };
   }
 };
+
+/**
+ * Get traffic sources data
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+export const getTrafficSourcesData = async () => {
+  try {
+    // For now, return mock data structure
+    // This would need actual traffic tracking implementation
+    const defaultData = [
+      { name: "Mon", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Tue", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Wed", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Thu", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Fri", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Sat", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+      { name: "Sun", Direct: 0, Search: 0, Market: 0, "Social media": 0, Other: 0 },
+    ];
+
+    return { data: defaultData, error: null };
+  } catch (error) {
+    return { data: null, error };
+  }
+};

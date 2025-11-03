@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import "./styles/app.sass";
 import Page from "./components/Page";
 import PrivateRoute from "./components/PrivateRoute";
+import PublicRoute from "./components/PublicRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import Home from "./screens/Home";
 import ProductsDashboard from "./screens/ProductsDashboard";
@@ -243,8 +244,22 @@ function App() {
                         </PrivateRoute>
                     }
                 />
-                <Route path="sign-up" element={<SignUp />} />
-                <Route path="sign-in" element={<SignIn />} />
+                <Route
+                    path="sign-up"
+                    element={
+                        <PublicRoute>
+                            <SignUp />
+                        </PublicRoute>
+                    }
+                />
+                <Route
+                    path="sign-in"
+                    element={
+                        <PublicRoute>
+                            <SignIn />
+                        </PublicRoute>
+                    }
+                />
                 <Route path="pagelist" element={<PageList />} />
             </Route>
         </Routes>

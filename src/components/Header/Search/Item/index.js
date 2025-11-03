@@ -8,7 +8,17 @@ const Item = ({ className, item, onClick }) => {
     <div className={cn(styles.item, className)}>
       <div className={styles.link} onClick={onClick}>
         <div className={styles.preview}>
-          <img srcSet={`${item.image2x} 2x`} src={item.image} alt="Product" />
+          {item.image ? (
+            <img srcSet={`${item.image2x || item.image} 2x`} src={item.image} alt={item.title} />
+          ) : item.icon ? (
+            <div className={styles.iconWrapper}>
+              <Icon name={item.icon} size="24" />
+            </div>
+          ) : (
+            <div className={styles.iconWrapper}>
+              <Icon name="search" size="24" />
+            </div>
+          )}
         </div>
         <div className={styles.details}>
           <div className={styles.content}>{item.content}</div>

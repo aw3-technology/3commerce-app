@@ -70,31 +70,51 @@ const User = ({ className }) => {
     const navigate = useNavigate();
     const { logout, user } = useAuth();
 
-    useEffect(() => {
-        const loadUserProfile = async () => {
-            const { data, error } = await getCurrentUser();
+    const loadUserProfile = async () => {
+        const { data, error } = await getCurrentUser();
 
-            if (!error && data) {
-                // Set avatar URL - check profile first, then user_metadata, then fallback to default
-                if (data.profile?.avatar_url) {
-                    setAvatarUrl(data.profile.avatar_url);
-                } else if (data.user_metadata?.avatar_url) {
-                    setAvatarUrl(data.user_metadata.avatar_url);
-                }
+        console.log('Header User - getCurrentUser response:', { data, error });
 
-                // Set display name from profile or user metadata
-                if (data.profile?.display_name) {
-                    setDisplayName(data.profile.display_name);
-                } else if (data.user_metadata?.name) {
-                    setDisplayName(data.user_metadata.name);
-                }
+        if (!error && data) {
+            // Set avatar URL - check profile first, then user_metadata, then fallback to default
+            if (data.profile?.avatar_url) {
+                console.log('Setting avatar from profile:', data.profile.avatar_url);
+                setAvatarUrl(data.profile.avatar_url);
+            } else if (data.user_metadata?.avatar_url) {
+                console.log('Setting avatar from user_metadata:', data.user_metadata.avatar_url);
+                setAvatarUrl(data.user_metadata.avatar_url);
+            } else {
+                console.log('No avatar found, using default');
             }
-        };
 
+            // Set display name from profile or user metadata
+            if (data.profile?.display_name) {
+                setDisplayName(data.profile.display_name);
+            } else if (data.user_metadata?.name) {
+                setDisplayName(data.user_metadata.name);
+            }
+        }
+    };
+
+    useEffect(() => {
         if (user) {
             loadUserProfile();
         }
     }, [user]);
+
+    // Refresh profile data when the dropdown becomes visible
+    useEffect(() => {
+        if (visible && user) {
+            loadUserProfile();
+        }
+    }, [visible]);
+
+    // Refresh profile data when navigating between pages
+    useEffect(() => {
+        if (user) {
+            loadUserProfile();
+        }
+    }, [pathname]);
 
     const handleLogout = async () => {
         setVisible(false);
