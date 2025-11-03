@@ -78,36 +78,38 @@ const KeyCodes = {
 };
 const delimiters = [KeyCodes.comma, KeyCodes.enter];
 
-const CategoryAndAttibutes = ({ className }) => {
-  const [category, setCategory] = useState(optionsCategory[0]);
+const CategoryAndAttibutes = ({ className, productData, updateProductData }) => {
+  const handleCategoryChange = (value) => {
+    updateProductData({ category: value });
+  };
 
-  const [selectedFilters, setSelectedFilters] = useState([]);
-
-  const handleChange = (id) => {
-    if (selectedFilters.includes(id)) {
-      setSelectedFilters(selectedFilters.filter((x) => x !== id));
+  const handleCompatibilityChange = (id) => {
+    const currentCompatibility = productData.compatibility || [];
+    if (currentCompatibility.includes(id)) {
+      updateProductData({
+        compatibility: currentCompatibility.filter((x) => x !== id)
+      });
     } else {
-      setSelectedFilters((selectedFilters) => [...selectedFilters, id]);
+      updateProductData({
+        compatibility: [...currentCompatibility, id]
+      });
     }
   };
 
-  const [tags, setTags] = useState([{ id: "Geometry", text: "Geometry" }]);
-
   const handleDelete = (i) => {
-    setTags(tags.filter((tag, index) => index !== i));
+    const newTags = productData.tags.filter((tag, index) => index !== i);
+    updateProductData({ tags: newTags });
   };
 
   const handleAddition = (tag) => {
-    setTags([...tags, tag]);
+    updateProductData({ tags: [...productData.tags, tag] });
   };
 
   const handleDrag = (tag, currPos, newPos) => {
-    const newTags = [...tags].slice();
-
+    const newTags = [...productData.tags].slice();
     newTags.splice(currPos, 1);
     newTags.splice(newPos, 0, tag);
-
-    setTags(newTags);
+    updateProductData({ tags: newTags });
   };
 
   const handleTagClick = (index) => {
@@ -115,13 +117,13 @@ const CategoryAndAttibutes = ({ className }) => {
   };
 
   const onClearAll = () => {
-    setTags([]);
+    updateProductData({ tags: [] });
   };
 
   const onTagUpdate = (i, newTag) => {
-    const updatedTags = tags.slice();
+    const updatedTags = productData.tags.slice();
     updatedTags.splice(i, 1, newTag);
-    setTags(updatedTags);
+    updateProductData({ tags: updatedTags });
   };
 
   return (
@@ -135,8 +137,8 @@ const CategoryAndAttibutes = ({ className }) => {
           className={styles.field}
           label="Category"
           tooltip="Maximum 100 characters. No HTML or emoji allowed"
-          value={category}
-          setValue={setCategory}
+          value={productData.category}
+          setValue={handleCategoryChange}
           options={optionsCategory}
         />
         <div className={styles.label}>
@@ -153,8 +155,8 @@ const CategoryAndAttibutes = ({ className }) => {
             <Checkbox
               className={styles.checkbox}
               content={x.title}
-              value={selectedFilters.includes(x.id)}
-              onChange={() => handleChange(x.id)}
+              value={productData.compatibility.includes(x.id)}
+              onChange={() => handleCompatibilityChange(x.id)}
               key={index}
             />
           ))}
@@ -170,7 +172,7 @@ const CategoryAndAttibutes = ({ className }) => {
             />
           </div>
           <div className={styles.counter}>
-            <span>1</span>/12 tags
+            <span>{productData.tags.length}</span>/12 tags
           </div>
         </div>
         <div className={styles.tags}>
@@ -197,7 +199,7 @@ const CategoryAndAttibutes = ({ className }) => {
             allowAdditionFromPaste={true}
             editable={true}
             clearAll={true}
-            tags={tags}
+            tags={productData.tags}
           />
         </div>
       </div>

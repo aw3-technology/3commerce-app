@@ -1,6 +1,7 @@
 {
-    "name": "",
-    "short_name": "",
+    "name": "3Commerce - Digital Marketplace Platform",
+    "short_name": "3Commerce",
+    "description": "Create, sell, and manage your digital products with 3Commerce",
     "icons": [
         {
             "src": "/android-chrome-192x192.png",
@@ -15,5 +16,7 @@
     ],
     "theme_color": "#ffffff",
     "background_color": "#ffffff",
-    "display": "standalone"
+    "display": "standalone",
+    "start_url": "/",
+    "scope": "/"
 }

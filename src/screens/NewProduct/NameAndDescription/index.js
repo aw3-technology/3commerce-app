@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
 import styles from "./NameAndDescription.module.sass";
@@ -7,8 +7,20 @@ import Icon from "../../../components/Icon";
 import TextInput from "../../../components/TextInput";
 import Editor from "../../../components/Editor";
 
-const NameAndDescription = ({ className }) => {
-    const [content, setContent] = useState();
+const NameAndDescription = ({ className, productData, updateProductData }) => {
+    const handleNameChange = (e) => {
+        updateProductData({ name: e.target.value });
+    };
+
+    const handleDescriptionChange = (value) => {
+        updateProductData({ description: value });
+    };
+
+    const handleKeyFeatureChange = (index, e) => {
+        const newKeyFeatures = [...productData.keyFeatures];
+        newKeyFeatures[index] = e.target.value;
+        updateProductData({ keyFeatures: newKeyFeatures });
+    };
 
     return (
         <Card
@@ -31,12 +43,14 @@ const NameAndDescription = ({ className }) => {
                     label="Product title"
                     name="title"
                     type="text"
+                    value={productData.name}
+                    onChange={handleNameChange}
                     tooltip="Maximum 100 characters. No HTML or emoji allowed"
                     required
                 />
                 <Editor
-                    state={content}
-                    onChange={setContent}
+                    state={productData.description}
+                    onChange={handleDescriptionChange}
                     classEditor={styles.editor}
                     label="Description"
                     tooltip="Description"
@@ -48,6 +62,8 @@ const NameAndDescription = ({ className }) => {
                         name="value1"
                         type="text"
                         placeholder="Value"
+                        value={productData.keyFeatures[0]}
+                        onChange={(e) => handleKeyFeatureChange(0, e)}
                         tooltip="Maximum 100 characters. No HTML or emoji allowed"
                         required
                     />
@@ -56,6 +72,8 @@ const NameAndDescription = ({ className }) => {
                         name="value2"
                         type="text"
                         placeholder="Value"
+                        value={productData.keyFeatures[1]}
+                        onChange={(e) => handleKeyFeatureChange(1, e)}
                         required
                     />
                     <TextInput
@@ -63,6 +81,8 @@ const NameAndDescription = ({ className }) => {
                         name="value3"
                         type="text"
                         placeholder="Value"
+                        value={productData.keyFeatures[2]}
+                        onChange={(e) => handleKeyFeatureChange(2, e)}
                         required
                     />
                     <TextInput
@@ -70,6 +90,8 @@ const NameAndDescription = ({ className }) => {
                         name="value4"
                         type="text"
                         placeholder="Value"
+                        value={productData.keyFeatures[3]}
+                        onChange={(e) => handleKeyFeatureChange(3, e)}
                         required
                     />
                 </div>

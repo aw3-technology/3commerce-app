@@ -12,6 +12,7 @@ const Schedule = ({
   setStartDate,
   startTime,
   setStartTime,
+  onSchedule,
 }) => {
   const [visibleDate, setVisibleDate] = useState(false);
   const [visibleTime, setVisibleTime] = useState(false);
@@ -95,7 +96,13 @@ const Schedule = ({
         </Item>
       </div>
       <div className={styles.btns}>
-        <button className={cn("button", styles.button)}>Reschedule</button>
+        <button
+          className={cn("button", styles.button)}
+          onClick={onSchedule}
+          disabled={!startDate || !startTime}
+        >
+          Schedule Product
+        </button>
       </div>
     </div>
   );

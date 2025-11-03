@@ -4,7 +4,15 @@ import styles from "./Panel.module.sass";
 import Icon from "../../../components/Icon";
 import Actions from "../../../components/Actions";
 
-const Panel = ({ setVisiblePreview, setVisibleSchedule }) => {
+const Panel = ({
+  setVisiblePreview,
+  setVisibleSchedule,
+  onSaveDraft,
+  onPublish,
+  onClearData,
+  isSaving,
+  lastSaved
+}) => {
   const actions = [
     {
       title: "Preview",
@@ -19,26 +27,54 @@ const Panel = ({ setVisiblePreview, setVisibleSchedule }) => {
     {
       title: "Get shareable link",
       icon: "link",
-      action: () => console.log("Get shareable link"),
+      action: () => alert("Shareable link feature coming soon!"),
     },
     {
       title: "Clear data",
       icon: "close",
-      action: () => console.log("Clear data"),
+      action: onClearData,
     },
   ];
+
+  const formatLastSaved = () => {
+    if (!lastSaved) return "Not saved yet";
+
+    const now = new Date();
+    const diff = Math.floor((now - lastSaved) / 1000); // difference in seconds
+
+    if (diff < 60) return "Just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+
+    return lastSaved.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <div className={cn("panel", styles.panel)}>
       <div className={styles.info}>
         <Icon name="check-all" size="24" />
-        Last saved <span>Oct 4, 2021 - 23:32</span>
+        Last saved <span>{formatLastSaved()}</span>
       </div>
       <div className={styles.btns}>
-        <button className={cn("button-stroke", styles.button)}>
-          Save Draft
+        <button
+          className={cn("button-stroke", styles.button)}
+          onClick={onSaveDraft}
+          disabled={isSaving}
+        >
+          {isSaving ? "Saving..." : "Save Draft"}
         </button>
-        <button className={cn("button", styles.button)}>Publish now</button>
+        <button
+          className={cn("button", styles.button)}
+          onClick={onPublish}
+          disabled={isSaving}
+        >
+          {isSaving ? "Publishing..." : "Publish now"}
+        </button>
         <Actions
           className={styles.actions}
           classActionsHead={styles.actionsHead}

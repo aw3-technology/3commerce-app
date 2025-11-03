@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import cn from "classnames";
 import styles from "./Discussion.module.sass";
 import Card from "../../../components/Card";
-import Editor from "../../../components/Editor";
+import Switch from "../../../components/Switch";
 
-const Discussion = ({ className }) => {
-    const [content, setContent] = useState();
+const Discussion = ({ className, productData, updateProductData }) => {
+    const handleToggle = () => {
+        updateProductData({ discussionEnabled: !productData.discussionEnabled });
+    };
 
     return (
         <Card
@@ -13,13 +15,21 @@ const Discussion = ({ className }) => {
             title="Discussion"
             classTitle="title-red"
         >
-            <Editor
-                state={content}
-                onChange={setContent}
-                classEditor={styles.editor}
-                label="Message to reviewer"
-                tooltip="Description Message to reviewer"
-            />
+            <div className={styles.discussion}>
+                <div className={styles.label}>
+                    Enable product discussion and reviews
+                </div>
+                <Switch
+                    className={styles.switch}
+                    value={productData.discussionEnabled}
+                    onChange={handleToggle}
+                />
+                {productData.discussionEnabled && (
+                    <div className={styles.info}>
+                        Customers will be able to leave reviews and ratings for this product
+                    </div>
+                )}
+            </div>
         </Card>
     );
 };
