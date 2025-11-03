@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import styles from "./Market.module.sass";
 import cn from "classnames";
 import Checkbox from "../../../components/Checkbox";
@@ -47,7 +48,10 @@ const Market = ({ items = [] }) => {
           ))
         ) : (
           <div className={styles.empty}>
-            <p>No products available</p>
+            <p>No published products yet</p>
+            <div style={{ fontSize: "14px", marginTop: "8px" }}>
+              Start by <Link to="/products/add">creating your first product</Link>
+            </div>
           </div>
         )}
       </div>

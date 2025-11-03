@@ -3,6 +3,7 @@ import styles from "./ProductActivity.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
 import Dropdown from "../../../components/Dropdown";
+import Icon from "../../../components/Icon";
 import Item from "./Item";
 import { getProductActivity } from "../../../services/analyticsService";
 
@@ -85,7 +86,13 @@ const ProductActivity = () => {
           <div className={styles.col}>Comments</div>
         </div>
         {loading ? (
-          <div className={styles.empty}>Loading activity...</div>
+          <div className={styles.row}>
+            <div className={styles.col} style={{ paddingTop: '40px', paddingBottom: '40px' }}>
+              <div style={{ textAlign: 'center', width: '100%', color: '#9A9FA5' }}>
+                Loading activity...
+              </div>
+            </div>
+          </div>
         ) : items.length > 0 ? (
           items.map((x, index) => (
             <div className={styles.row} key={index}>
@@ -112,7 +119,13 @@ const ProductActivity = () => {
             </div>
           ))
         ) : (
-          <div className={styles.empty}>No product activity in the last 2 weeks</div>
+          <div className={styles.emptyState}>
+            <Icon name="chart-line" size="48" className={styles.emptyIcon} />
+            <div className={styles.emptyText}>No product activity yet</div>
+            <div className={styles.emptyHint}>
+              Create products and track their performance here
+            </div>
+          </div>
         )}
       </div>
       <div className={styles.nav}>

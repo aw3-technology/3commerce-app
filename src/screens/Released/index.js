@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import cn from "classnames";
 import styles from "./Released.module.sass";
 import Card from "../../components/Card";
@@ -167,20 +168,24 @@ const Released = () => {
               {activeIndex === 0 && <Market items={products} />}
               {activeIndex === 1 && (
                 <>
-                  <div className={styles.list}>
-                    {products.map((x, index) => (
-                      <Product
-                        className={styles.product}
-                        value={selectedFilters.includes(x.id)}
-                        onChange={() => handleChange(x.id)}
-                        item={x}
-                        key={index}
-                      />
-                    ))}
-                  </div>
-                  {products.length === 0 && (
+                  {products.length > 0 ? (
+                    <div className={styles.list}>
+                      {products.map((x, index) => (
+                        <Product
+                          className={styles.product}
+                          value={selectedFilters.includes(x.id)}
+                          onChange={() => handleChange(x.id)}
+                          item={x}
+                          key={index}
+                        />
+                      ))}
+                    </div>
+                  ) : (
                     <div className={styles.empty}>
-                      <p>No published products found</p>
+                      <p>No published products yet</p>
+                      <div style={{ fontSize: "14px", marginTop: "8px" }}>
+                        Start by <Link to="/products/add">creating your first product</Link>
+                      </div>
                     </div>
                   )}
                 </>
