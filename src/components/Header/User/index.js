@@ -64,7 +64,7 @@ const items = [
 
 const User = ({ className }) => {
     const [visible, setVisible] = useState(false);
-    const [avatarUrl, setAvatarUrl] = useState("/images/content/avatar.jpg");
+    const [avatarUrl, setAvatarUrl] = useState(null);
     const [displayName, setDisplayName] = useState("");
     const { pathname } = useLocation();
     const navigate = useNavigate();
@@ -76,7 +76,7 @@ const User = ({ className }) => {
         console.log('Header User - getCurrentUser response:', { data, error });
 
         if (!error && data) {
-            // Set avatar URL - check profile first, then user_metadata, then fallback to default
+            // Set avatar URL - check profile first, then user_metadata, don't use default
             if (data.profile?.avatar_url) {
                 console.log('Setting avatar from profile:', data.profile.avatar_url);
                 setAvatarUrl(data.profile.avatar_url);
@@ -84,7 +84,8 @@ const User = ({ className }) => {
                 console.log('Setting avatar from user_metadata:', data.user_metadata.avatar_url);
                 setAvatarUrl(data.user_metadata.avatar_url);
             } else {
-                console.log('No avatar found, using default');
+                console.log('No avatar found, using placeholder');
+                setAvatarUrl(null);
             }
 
             // Set display name from profile or user metadata
@@ -135,7 +136,13 @@ const User = ({ className }) => {
                     className={styles.head}
                     onClick={() => setVisible(!visible)}
                 >
-                    <img src={avatarUrl} alt="Avatar" />
+                    {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" />
+                    ) : (
+                        <div className={styles.placeholder}>
+                            {displayName ? displayName.charAt(0).toUpperCase() : user?.email?.charAt(0).toUpperCase() || "U"}
+                        </div>
+                    )}
                 </button>
                 <div className={styles.body}>
                     {user && (
