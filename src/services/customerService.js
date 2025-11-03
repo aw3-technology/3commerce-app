@@ -441,8 +441,16 @@ export const getCustomersWithEngagement = async (options = {}) => {
       .select('*');
 
     // Filter by status (active, new, inactive)
-    if (options.status) {
-      query = query.eq('status', options.status);
+    if (options.status === 'active') {
+      // Active customers: those who logged in within the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      query = query.gte('last_login', thirtyDaysAgo.toISOString());
+    } else if (options.status === 'new') {
+      // New customers: created within the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      query = query.gte('created_at', thirtyDaysAgo.toISOString());
     }
 
     // Search by name or email
@@ -470,9 +478,40 @@ export const getCustomersWithEngagement = async (options = {}) => {
       query = query.order('created_at', { ascending: false });
     }
 
-    const { data, error } = await query;
+    const { data: customers, error } = await query;
 
-    return { data, error };
+    if (error) {
+      return { data: null, error };
+    }
+
+    // Enrich customer data with engagement metrics
+    const enrichedCustomers = await Promise.all(
+      customers.map(async (customer) => {
+        // Get comment count
+        const { count: commentCount } = await supabase
+          .from('comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('customer_id', customer.id);
+
+        // Get like count
+        const { count: likeCount } = await supabase
+          .from('customer_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('customer_id', customer.id);
+
+        // Generate username from email if not exists
+        const username = customer.email ? `@${customer.email.split('@')[0]}` : '@user';
+
+        return {
+          ...customer,
+          username,
+          comment_count: commentCount || 0,
+          like_count: likeCount || 0,
+        };
+      })
+    );
+
+    return { data: enrichedCustomers, error: null };
   } catch (error) {
     return { data: null, error };
   }
@@ -489,8 +528,16 @@ export const getCustomerCountByStatus = async (status = null) => {
       .from('customers')
       .select('*', { count: 'exact', head: true });
 
-    if (status) {
-      query = query.eq('status', status);
+    if (status === 'active') {
+      // Active customers: those who logged in within the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      query = query.gte('last_login', thirtyDaysAgo.toISOString());
+    } else if (status === 'new') {
+      // New customers: created within the last 30 days
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      query = query.gte('created_at', thirtyDaysAgo.toISOString());
     }
 
     const { count, error } = await query;

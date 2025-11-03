@@ -5,17 +5,33 @@ import Checkbox from "../Checkbox";
 import Loader from "../Loader";
 import Row from "./Row";
 
-const Table = ({ items, title }) => {
+const Table = ({ items, title, selectedProducts, onSelectProducts }) => {
   const [chooseAll, setСhooseAll] = useState(false);
 
-  const [selectedFilters, setSelectedFilters] = useState([]);
+  // Use parent state if provided, otherwise use local state
+  const selectedFilters = selectedProducts || [];
+  const setSelectedFilters = onSelectProducts || (() => {});
 
   const handleChange = (id) => {
     if (selectedFilters.includes(id)) {
-      setSelectedFilters(selectedFilters.filter((x) => x !== id));
+      const newSelection = selectedFilters.filter((x) => x !== id);
+      setSelectedFilters(newSelection);
     } else {
-      setSelectedFilters((selectedFilters) => [...selectedFilters, id]);
+      const newSelection = [...selectedFilters, id];
+      setSelectedFilters(newSelection);
     }
+  };
+
+  const handleChooseAll = () => {
+    if (chooseAll) {
+      // Deselect all
+      setSelectedFilters([]);
+    } else {
+      // Select all
+      const allIds = items.map(item => item.id);
+      setSelectedFilters(allIds);
+    }
+    setСhooseAll(!chooseAll);
   };
 
   return (
@@ -26,7 +42,7 @@ const Table = ({ items, title }) => {
             <Checkbox
               className={styles.checkbox}
               value={chooseAll}
-              onChange={() => setСhooseAll(!chooseAll)}
+              onChange={handleChooseAll}
             />
           </div>
           <div className={styles.col}>Product</div>

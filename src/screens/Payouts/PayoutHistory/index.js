@@ -44,37 +44,7 @@ const PayoutHistory = ({ className }) => {
           }
         });
 
-        // If no payout transactions, generate simulated monthly data from completed orders
-        if (Object.keys(monthlyPayouts).length === 0) {
-          const paymentTransactions = data.filter(tx => tx.type === 'payment');
-          const monthlyEarnings = {};
-
-          paymentTransactions.forEach(tx => {
-            const date = new Date(tx.created_at);
-            const monthKey = `${date.toLocaleString('en-US', { month: 'short' })} ${date.getFullYear()}`;
-
-            if (!monthlyEarnings[monthKey]) {
-              monthlyEarnings[monthKey] = {
-                date: monthKey,
-                dateObj: date,
-                status: true, // Simulated as paid
-                method: ['Paypal', 'SWIFT'][Math.floor(Math.random() * 2)],
-                earnings: 0,
-                amount: 0,
-              };
-            }
-
-            const platformFee = tx.amount * 0.10;
-            const netEarning = tx.amount - platformFee;
-            monthlyEarnings[monthKey].earnings += netEarning;
-            monthlyEarnings[monthKey].amount += netEarning;
-          });
-
-          // Convert to array
-          Object.keys(monthlyEarnings).forEach(key => {
-            monthlyPayouts[key] = monthlyEarnings[key];
-          });
-        }
+        // Only show real payout transactions - no simulated data
 
         // Convert to array and sort by date (newest first)
         const sortedPayouts = Object.values(monthlyPayouts)

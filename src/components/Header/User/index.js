@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import cn from "classnames";
 import OutsideClickHandler from "react-outside-click-handler";
 import styles from "./User.module.sass";
 import Icon from "../../Icon";
 import { useAuth } from "../../../contexts/AuthContext";
+import { getCurrentUser } from "../../../services/userService";
 
 const items = [
     {
@@ -63,9 +64,37 @@ const items = [
 
 const User = ({ className }) => {
     const [visible, setVisible] = useState(false);
+    const [avatarUrl, setAvatarUrl] = useState("/images/content/avatar.jpg");
+    const [displayName, setDisplayName] = useState("");
     const { pathname } = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
+
+    useEffect(() => {
+        const loadUserProfile = async () => {
+            const { data, error } = await getCurrentUser();
+
+            if (!error && data) {
+                // Set avatar URL - check profile first, then user_metadata, then fallback to default
+                if (data.profile?.avatar_url) {
+                    setAvatarUrl(data.profile.avatar_url);
+                } else if (data.user_metadata?.avatar_url) {
+                    setAvatarUrl(data.user_metadata.avatar_url);
+                }
+
+                // Set display name from profile or user metadata
+                if (data.profile?.display_name) {
+                    setDisplayName(data.profile.display_name);
+                } else if (data.user_metadata?.name) {
+                    setDisplayName(data.user_metadata.name);
+                }
+            }
+        };
+
+        if (user) {
+            loadUserProfile();
+        }
+    }, [user]);
 
     const handleLogout = async () => {
         setVisible(false);
@@ -86,14 +115,14 @@ const User = ({ className }) => {
                     className={styles.head}
                     onClick={() => setVisible(!visible)}
                 >
-                    <img src="/images/content/avatar.jpg" alt="Avatar" />
+                    <img src={avatarUrl} alt="Avatar" />
                 </button>
                 <div className={styles.body}>
                     {user && (
                         <div className={styles.menu}>
                             <div style={{ padding: "12px 24px", borderBottom: "1px solid #e4e4e4" }}>
                                 <div style={{ fontSize: "14px", fontWeight: "600" }}>
-                                    {user.user_metadata?.name || "User"}
+                                    {displayName || user.user_metadata?.name || "User"}
                                 </div>
                                 <div style={{ fontSize: "12px", color: "#777", marginTop: "4px" }}>
                                     {user.email}
