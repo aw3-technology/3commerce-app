@@ -20,9 +20,20 @@ import supabase from '../config/supabaseClient';
 export const getAllPosts = async (options = {}) => {
   const { limit = 50, offset = 0, status } = options;
 
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      data: null,
+      error: { message: 'User must be authenticated' }
+    };
+  }
+
   let query = supabase
     .from('social_posts')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   if (status) {
@@ -121,14 +132,25 @@ export const deletePost = async (id) => {
 };
 
 /**
- * Get posts filtered by time period
+ * Get posts filtered by time period for the current user
  * @param {string} period - Time period ('7days', 'month', 'all')
  * @returns {Promise<{data: Array, error: Error}>}
  */
 export const getPostsByPeriod = async (period = '7days') => {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      data: null,
+      error: { message: 'User must be authenticated' }
+    };
+  }
+
   let query = supabase
     .from('social_posts')
     .select('*')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
   const now = new Date();
@@ -153,7 +175,7 @@ export const getPostsByPeriod = async (period = '7days') => {
   }
 
   const { data, error } = await query;
-  return { data, error };
+  return { data: data || [], error };
 };
 
 // ============================================

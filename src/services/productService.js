@@ -3,13 +3,23 @@ import supabase from '../config/supabaseClient';
 // Products Service - Handles all product-related database operations
 
 /**
- * Fetch all products
+ * Fetch all products for the current user
  * @param {Object} options - Query options (limit, offset, filters)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getAllProducts = async (options = {}) => {
   try {
-    let query = supabase.from('products').select('*');
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
+    let query = supabase.from('products').select('*').eq('user_id', user.id);
 
     // Apply filters if provided
     if (options.status) {
@@ -141,23 +151,36 @@ export const getProductsByStatus = async (status) => {
 };
 
 /**
- * Get product statistics
+ * Get product statistics for the current user
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getProductStats = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { count: totalCount, error: totalError } = await supabase
       .from('products')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     const { count: publishedCount, error: publishedError } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .eq('status', 'published');
 
     const { count: draftCount, error: draftError } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .eq('status', 'draft');
 
     if (totalError || publishedError || draftError) {
@@ -200,18 +223,25 @@ export const searchProducts = async (searchTerm) => {
 };
 
 /**
- * Get popular products based on sales count
- * @param {Object} options - Query options (limit)
+ * Get popular products based on sales count (for current user)
+ * @param {Object} options - Query options (limit, userId)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getPopularProducts = async (options = {}) => {
   try {
     const limit = options.limit || 8;
 
-    // Get products with sales data
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { data: [], error: null };
+    }
+
+    // Get products with sales data for current user
     const { data: productsData, error: productsError } = await supabase
       .from('products')
       .select('*')
+      .eq('user_id', user.id)
       .eq('status', 'published')
       .order('sales_count', { ascending: false })
       .limit(limit);

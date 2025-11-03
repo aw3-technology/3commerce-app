@@ -8,7 +8,7 @@ import Table from "../../components/Table";
 import Product from "../../components/Product";
 import Loader from "../../components/Loader";
 import Panel from "./Panel";
-import { getProductsByStatus, searchProducts } from "../../services/productService";
+import { getProductsByStatus, searchProducts, updateProduct, deleteProduct } from "../../services/productService";
 
 const sorting = ["list", "grid"];
 
@@ -108,6 +108,55 @@ const Drafts = () => {
     }
   };
 
+  const handlePublish = async () => {
+    if (selectedFilters.length === 0) return;
+
+    try {
+      const updatePromises = selectedFilters.map(productId =>
+        updateProduct(productId, {
+          status: 'published',
+          published_at: new Date().toISOString()
+        })
+      );
+
+      await Promise.all(updatePromises);
+      alert(`Successfully published ${selectedFilters.length} product(s)`);
+
+      // Clear selection and refresh
+      setSelectedFilters([]);
+      fetchDraftProducts();
+    } catch (error) {
+      console.error('Error publishing products:', error);
+      alert('Failed to publish products. Please try again.');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedFilters.length === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedFilters.length} product(s)? This action cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const deletePromises = selectedFilters.map(productId =>
+        deleteProduct(productId)
+      );
+
+      await Promise.all(deletePromises);
+      alert(`Successfully deleted ${selectedFilters.length} product(s)`);
+
+      // Clear selection and refresh
+      setSelectedFilters([]);
+      fetchDraftProducts();
+    } catch (error) {
+      console.error('Error deleting products:', error);
+      alert('Failed to delete products. Please try again.');
+    }
+  };
+
   return (
     <>
       <Card
@@ -160,7 +209,14 @@ const Drafts = () => {
           )}
           {!loading && !error && (
             <>
-              {activeIndex === 0 && <Table items={products} title="Last edited" />}
+              {activeIndex === 0 && (
+                <Table
+                  items={products}
+                  title="Last edited"
+                  selectedProducts={selectedFilters}
+                  onSelectProducts={setSelectedFilters}
+                />
+              )}
               {activeIndex === 1 && (
                 <>
                   <div className={styles.list}>
@@ -186,7 +242,13 @@ const Drafts = () => {
           )}
         </div>
       </Card>
-      <Panel />
+      {selectedFilters.length > 0 && (
+        <Panel
+          selectedCount={selectedFilters.length}
+          onPublish={handlePublish}
+          onDelete={handleDelete}
+        />
+      )}
     </>
   );
 };

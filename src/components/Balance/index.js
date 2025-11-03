@@ -4,6 +4,11 @@ import styles from "./Balance.module.sass";
 import Icon from "../Icon";
 
 const Balance = ({ className, value, background }) => {
+  // Don't render if value is null, undefined, or 0
+  if (value === null || value === undefined || value === 0) {
+    return null;
+  }
+
   return value > 0 ? (
     <div
       className={cn(

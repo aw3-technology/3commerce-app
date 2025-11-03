@@ -3,15 +3,26 @@ import supabase from '../config/supabaseClient';
 // Orders & Transactions Service - Handles all order-related database operations
 
 /**
- * Fetch all orders
+ * Fetch all orders for the current user's customers
  * @param {Object} options - Query options (limit, offset, filters)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getAllOrders = async (options = {}) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('orders')
-      .select('*, customers(*), products(*)');
+      .select('*, customers!inner(*), products(*)')
+      .eq('customers.user_id', user.id);
 
     if (options.status) {
       query = query.eq('status', options.status);

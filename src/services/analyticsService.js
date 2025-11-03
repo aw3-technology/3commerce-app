@@ -3,33 +3,47 @@ import supabase from '../config/supabaseClient';
 // Analytics Service - Handles dashboard analytics and statistics
 
 /**
- * Get dashboard overview statistics
+ * Get dashboard overview statistics for the current user
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getDashboardStats = async () => {
   try {
-    // Get total revenue
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
+    // Get total revenue from orders (via customers)
     const { data: revenueData, error: revenueError } = await supabase
       .from('orders')
-      .select('total_amount')
+      .select('total_amount, customers!inner(user_id)')
+      .eq('customers.user_id', user.id)
       .eq('status', 'completed');
 
     const totalRevenue = revenueData?.reduce((sum, order) => sum + (order.total_amount || 0), 0) || 0;
 
-    // Get total orders
+    // Get total orders for user's customers
     const { count: totalOrders, error: ordersError } = await supabase
       .from('orders')
-      .select('*', { count: 'exact', head: true });
+      .select('*, customers!inner(user_id)', { count: 'exact', head: true })
+      .eq('customers.user_id', user.id);
 
-    // Get total products
+    // Get total products for current user
     const { count: totalProducts, error: productsError } = await supabase
       .from('products')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
-    // Get total customers
+    // Get total customers for current user
     const { count: totalCustomers, error: customersError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     if (revenueError || ordersError || productsError || customersError) {
       return {
@@ -53,15 +67,26 @@ export const getDashboardStats = async () => {
 };
 
 /**
- * Get sales data over time
+ * Get sales data over time for the current user
  * @param {string} period - Time period (day, week, month, year)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getSalesData = async (period = 'month') => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('orders')
-      .select('created_at, total_amount, status')
+      .select('created_at, total_amount, status, customers!inner(user_id)')
+      .eq('customers.user_id', user.id)
       .eq('status', 'completed')
       .order('created_at', { ascending: true });
 
@@ -90,15 +115,26 @@ export const getProductViews = async () => {
 };
 
 /**
- * Get top selling products
+ * Get top selling products for the current user
  * @param {number} limit - Number of products to return
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getTopProducts = async (limit = 10) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('products')
       .select('*, order_items(quantity)')
+      .eq('user_id', user.id)
       .order('sales_count', { ascending: false })
       .limit(limit);
 
@@ -109,14 +145,25 @@ export const getTopProducts = async (limit = 10) => {
 };
 
 /**
- * Get customer growth data
+ * Get customer growth data for the current user
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getCustomerGrowth = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .select('created_at')
+      .eq('user_id', user.id)
       .order('created_at', { ascending: true });
 
     return { data, error };
@@ -179,27 +226,43 @@ export const getConversionRate = async () => {
 };
 
 /**
- * Get product activity data by week
+ * Get product activity data by week for the current user
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getProductActivity = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const twoWeeksAgo = new Date();
     twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
+    // Get products created by current user in the last 2 weeks
     const { data: productsData, error: productsError } = await supabase
       .from('products')
       .select('created_at')
+      .eq('user_id', user.id)
       .gte('created_at', twoWeeksAgo.toISOString());
 
+    // Get views for current user's products
     const { data: viewsData, error: viewsError } = await supabase
       .from('product_views')
-      .select('created_at, view_count')
+      .select('created_at, view_count, products!inner(user_id)')
+      .eq('products.user_id', user.id)
       .gte('created_at', twoWeeksAgo.toISOString());
 
+    // Get comments on current user's products
     const { data: commentsData, error: commentsError } = await supabase
       .from('comments')
-      .select('created_at')
+      .select('created_at, products!inner(user_id)')
+      .eq('products.user_id', user.id)
       .gte('created_at', twoWeeksAgo.toISOString());
 
     if (productsError || viewsError || commentsError) {
@@ -248,33 +311,46 @@ export const getProductActivity = async () => {
       comments: weeks[weekRange].comments,
     }));
 
-    return { data: result, error: null };
+    // If no data, return empty array (will show no activity)
+    return { data: result.length > 0 ? result : [], error: null };
   } catch (error) {
     return { data: null, error };
   }
 };
 
 /**
- * Get customer analytics data over time period
+ * Get customer analytics data over time period for the current user
  * @param {number} days - Number of days to look back (7, 14, 28)
  * @returns {Promise<{data: Object, error: Object}>}
  */
 export const getCustomerAnalytics = async (days = 28) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    // Get customers created in the time period
+    // Get customers created in the time period for current user
     const { data: customersData, error: customersError } = await supabase
       .from('customers')
       .select('created_at')
+      .eq('user_id', user.id)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: true });
 
-    // Get total customer count
+    // Get total customer count for current user
     const { count: totalCustomers, error: countError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     // Get previous period for comparison
     const previousStartDate = new Date(startDate);
@@ -283,6 +359,7 @@ export const getCustomerAnalytics = async (days = 28) => {
     const { count: previousPeriodCount, error: previousError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', previousStartDate.toISOString())
       .lt('created_at', startDate.toISOString());
 

@@ -5,7 +5,15 @@ import Checkbox from "../Checkbox";
 import Loader from "../Loader";
 import Row from "./Row";
 
-const Table = ({ items, title, selectedProducts, onSelectProducts }) => {
+const Table = ({
+  items,
+  title,
+  selectedProducts,
+  onSelectProducts,
+  loading = false,
+  onLoadMore,
+  hasMore = false
+}) => {
   const [chooseAll, setСhooseAll] = useState(false);
 
   // Use parent state if provided, otherwise use local state
@@ -49,22 +57,34 @@ const Table = ({ items, title, selectedProducts, onSelectProducts }) => {
           <div className={styles.col}>Price</div>
           <div className={styles.col}>{title}</div>
         </div>
-        {items.map((x, index) => (
-          <Row
-            item={x}
-            key={index}
-            index={index}
-            value={selectedFilters.includes(x.id)}
-            onChange={() => handleChange(x.id)}
-          />
-        ))}
+        {items.length === 0 ? (
+          <div className={styles.empty}>
+            <div className={styles.emptyText}>No products found</div>
+          </div>
+        ) : (
+          items.map((x, index) => (
+            <Row
+              item={x}
+              key={x.id || index}
+              index={index}
+              value={selectedFilters.includes(x.id)}
+              onChange={() => handleChange(x.id)}
+            />
+          ))
+        )}
       </div>
-      <div className={styles.foot}>
-        <button className={cn("button-stroke button-small", styles.button)}>
-          <Loader className={styles.loader} />
-          <span>Load more</span>
-        </button>
-      </div>
+      {onLoadMore && hasMore && (
+        <div className={styles.foot}>
+          <button
+            className={cn("button-stroke button-small", styles.button)}
+            onClick={onLoadMore}
+            disabled={loading}
+          >
+            {loading && <Loader className={styles.loader} />}
+            <span>{loading ? 'Loading...' : 'Load more'}</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

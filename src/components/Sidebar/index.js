@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Sidebar.module.sass";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import cn from "classnames";
@@ -7,8 +7,9 @@ import Theme from "../Theme";
 import Dropdown from "./Dropdown";
 import Help from "./Help";
 import Image from "../Image";
+import { getProductsByStatus } from "../../services/productService";
 
-const navigation = [
+const baseNavigation = [
     {
         title: "Home",
         icon: "home",
@@ -27,8 +28,9 @@ const navigation = [
             {
                 title: "Drafts",
                 url: "/products/drafts",
-                counter: "2",
+                counter: "0",
                 colorCounter: "#FFBC99",
+                statusKey: "draft",
             },
             {
                 title: "Released",
@@ -41,8 +43,9 @@ const navigation = [
             {
                 title: "Scheduled",
                 url: "/products/scheduled",
-                counter: "8",
+                counter: "0",
                 colorCounter: "#B5E4CA",
+                statusKey: "scheduled",
             },
         ],
     },
@@ -99,8 +102,48 @@ const navigation = [
 const Sidebar = ({ className, onClose }) => {
     const [visibleHelp, setVisibleHelp] = useState(false);
     const [visible, setVisible] = useState(false);
+    const [navigation, setNavigation] = useState(baseNavigation);
 
     const { pathname } = useLocation();
+
+    useEffect(() => {
+        const fetchCounts = async () => {
+            try {
+                // Fetch draft products count
+                const { data: draftProducts } = await getProductsByStatus('draft');
+                const draftCount = draftProducts?.length || 0;
+
+                // Fetch scheduled products count
+                const { data: scheduledProducts } = await getProductsByStatus('scheduled');
+                const scheduledCount = scheduledProducts?.length || 0;
+
+                // Update navigation with real counts
+                const updatedNavigation = baseNavigation.map(item => {
+                    if (item.slug === 'products' && item.dropdown) {
+                        return {
+                            ...item,
+                            dropdown: item.dropdown.map(subItem => {
+                                if (subItem.statusKey === 'draft') {
+                                    return { ...subItem, counter: draftCount.toString() };
+                                }
+                                if (subItem.statusKey === 'scheduled') {
+                                    return { ...subItem, counter: scheduledCount.toString() };
+                                }
+                                return subItem;
+                            })
+                        };
+                    }
+                    return item;
+                });
+
+                setNavigation(updatedNavigation);
+            } catch (error) {
+                console.error('Error fetching navigation counts:', error);
+            }
+        };
+
+        fetchCounts();
+    }, []);
 
     return (
         <>
@@ -160,7 +203,6 @@ const Sidebar = ({ className, onClose }) => {
                     >
                         <Icon name="help" size="24" />
                         Help & getting started
-                        <div className={styles.counter}>8</div>
                     </button>
                     <Theme className={styles.theme} visibleSidebar={visible} />
                 </div>

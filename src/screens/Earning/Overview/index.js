@@ -30,15 +30,28 @@ const Overview = ({ className }) => {
     const { data, error } = await getOrderStats();
 
     if (!error && data) {
-      // Calculate current week vs previous week growth
-      // For now, using the revenue directly
+      // Calculate earnings metrics from real order data
+      const earnings = data.revenue || 0;
+      const balance = earnings * 0.4; // Assuming 40% balance of total revenue
+      const totalSales = data.revenue || 0;
+
       setStats({
-        earnings: data.revenue || 0,
-        balance: data.revenue * 0.4 || 0, // Assuming 40% balance of total revenue
-        totalSales: data.revenue || 0,
-        earningsGrowth: 37.8, // Placeholder for growth percentage
-        balanceGrowth: -17.8, // Placeholder for growth percentage
-        salesGrowth: 24.3, // Placeholder for growth percentage
+        earnings,
+        balance,
+        totalSales,
+        earningsGrowth: 0, // TODO: Calculate from weekly comparison
+        balanceGrowth: 0, // TODO: Calculate from weekly comparison
+        salesGrowth: 0, // TODO: Calculate from weekly comparison
+      });
+    } else {
+      // No data or error - show zeros
+      setStats({
+        earnings: 0,
+        balance: 0,
+        totalSales: 0,
+        earningsGrowth: 0,
+        balanceGrowth: 0,
+        salesGrowth: 0,
       });
     }
 

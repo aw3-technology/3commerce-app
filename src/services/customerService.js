@@ -3,13 +3,23 @@ import supabase from '../config/supabaseClient';
 // Customers Service - Handles all customer-related database operations
 
 /**
- * Fetch all customers
+ * Fetch all customers for the current user
  * @param {Object} options - Query options (limit, offset, filters)
  * @returns {Promise<{data: Array, error: Object}>}
  */
 export const getAllCustomers = async (options = {}) => {
   try {
-    let query = supabase.from('customers').select('*');
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
+    let query = supabase.from('customers').select('*').eq('user_id', user.id);
 
     if (options.limit) {
       query = query.limit(options.limit);
@@ -55,11 +65,22 @@ export const getCustomerById = async (customerId) => {
  */
 export const createCustomer = async (customerData) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated to create customers' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .insert([
         {
           ...customerData,
+          user_id: user.id,
           created_at: new Date().toISOString(),
         }
       ])
@@ -120,9 +141,20 @@ export const deleteCustomer = async (customerId) => {
  */
 export const getCustomerStats = async () => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { count: totalCount, error: totalError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     // Get active customers (logged in within last 30 days)
     const thirtyDaysAgo = new Date();
@@ -131,6 +163,7 @@ export const getCustomerStats = async () => {
     const { count: activeCount, error: activeError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('last_login', thirtyDaysAgo.toISOString());
 
     if (totalError || activeError) {
@@ -159,9 +192,20 @@ export const getCustomerStats = async () => {
  */
 export const searchCustomers = async (searchTerm) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .select('*')
+      .eq('user_id', user.id)
       .or(`name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`)
       .order('created_at', { ascending: false });
 
@@ -197,12 +241,23 @@ export const getCustomerPurchases = async (customerId) => {
  */
 export const getCustomerGrowthData = async (days = 30) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const { data, error } = await supabase
       .from('customers')
       .select('created_at')
+      .eq('user_id', user.id)
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: true });
 
@@ -239,6 +294,16 @@ export const getCustomerGrowthData = async (days = 30) => {
  */
 export const getActiveCustomersData = async (days = 30) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
@@ -246,6 +311,7 @@ export const getActiveCustomersData = async (days = 30) => {
     const { data, error } = await supabase
       .from('customers')
       .select('last_login, created_at')
+      .eq('user_id', user.id)
       .gte('last_login', startDate.toISOString())
       .order('last_login', { ascending: true });
 
@@ -297,6 +363,16 @@ export const getActiveCustomersData = async (days = 30) => {
  */
 export const getNewVsReturningCustomers = async (days = 30) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
@@ -304,12 +380,14 @@ export const getNewVsReturningCustomers = async (days = 30) => {
     const { count: newCount, error: newError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', cutoffDate.toISOString());
 
     // Get returning customers (created before the period but logged in recently)
     const { count: returningCount, error: returningError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .lt('created_at', cutoffDate.toISOString())
       .gte('last_login', cutoffDate.toISOString());
 
@@ -339,9 +417,20 @@ export const getNewVsReturningCustomers = async (days = 30) => {
  */
 export const getCustomersByCountry = async (limit = 10) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const { data, error } = await supabase
       .from('customers')
-      .select('country');
+      .select('country')
+      .eq('user_id', user.id);
 
     if (error) {
       return { data: null, error };
@@ -379,6 +468,16 @@ export const getCustomersByCountry = async (limit = 10) => {
  */
 export const getCustomerGrowthStats = async (days = 28) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     const currentDate = new Date();
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - days);
@@ -388,18 +487,21 @@ export const getCustomerGrowthStats = async (days = 28) => {
     // Get total customers
     const { count: totalCount, error: totalError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     // Get current period customers
     const { count: currentPeriod, error: currentError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', pastDate.toISOString());
 
     // Get previous period customers
     const { count: previousPeriod, error: previousError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', previousPastDate.toISOString())
       .lt('created_at', pastDate.toISOString());
 
@@ -436,9 +538,20 @@ export const getCustomerGrowthStats = async (days = 28) => {
  */
 export const getCustomersWithEngagement = async (options = {}) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('customers')
-      .select('*');
+      .select('*')
+      .eq('user_id', user.id);
 
     // Filter by status (active, new, inactive)
     if (options.status === 'active') {
@@ -524,9 +637,20 @@ export const getCustomersWithEngagement = async (options = {}) => {
  */
 export const getCustomerCountByStatus = async (status = null) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id);
 
     if (status === 'active') {
       // Active customers: those who logged in within the last 30 days

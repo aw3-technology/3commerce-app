@@ -14,15 +14,26 @@ import supabase from '../config/supabaseClient';
  */
 export const getAllComments = async (options = {}) => {
   try {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        data: null,
+        error: { message: 'User must be authenticated' }
+      };
+    }
+
     let query = supabase
       .from('comments')
       .select(`
         *,
-        products (
+        products!inner (
           id,
           name,
           image_url,
-          category
+          category,
+          user_id
         ),
         customers (
           id,
@@ -30,7 +41,8 @@ export const getAllComments = async (options = {}) => {
           email,
           avatar_url
         )
-      `);
+      `)
+      .eq('products.user_id', user.id);
 
     if (options.productId) {
       query = query.eq('product_id', options.productId);
