@@ -11,7 +11,7 @@ import Follower from "./Follower";
 import Loader from "../../components/Loader";
 import { getAllProducts } from "../../services/productService";
 import { getAllComments } from "../../services/commentService";
-import { getFollowedCreators, getAllCreators } from "../../services/creatorService";
+import supabase from "../../config/supabaseClient";
 
 const navigation = ["Products", "Followers", "Following"];
 const intervals = ["Most recent", "Most new", "Most popular"];
@@ -136,45 +136,86 @@ const Shop = () => {
 
   const fetchFollowers = async (pageNum) => {
     try {
-      // For "Followers" tab - get all creators sorted by followers count
-      const { data, error } = await getAllCreators({
-        limit: ITEMS_PER_PAGE,
-        offset: (pageNum - 1) * ITEMS_PER_PAGE,
-        sortBy: 'followers'
-      });
+      // Get user profiles that have published products
+      const { data: usersData, error } = await supabase
+        .from('user_profiles')
+        .select(`
+          id,
+          user_id,
+          display_name,
+          avatar_url,
+          bio
+        `)
+        .range((pageNum - 1) * ITEMS_PER_PAGE, pageNum * ITEMS_PER_PAGE - 1);
 
       if (error) {
-        setError(error.message || "Failed to fetch followers");
-        console.error("Error fetching followers:", error);
-      } else {
-        const transformedData = data?.map((creator) => {
+        setError(error.message || "Failed to fetch users");
+        console.error("Error fetching users:", error);
+        setFollowers([]);
+        return;
+      }
+
+      if (!usersData || usersData.length === 0) {
+        setFollowers([]);
+        setHasMore(false);
+        return;
+      }
+
+      // Get products for each user
+      const userIds = usersData.map(u => u.user_id);
+      const { data: productsData } = await supabase
+        .from('products')
+        .select('id, name, image_url, price, status, user_id')
+        .in('user_id', userIds)
+        .eq('status', 'published');
+
+      // Group products by user
+      const productsByUser = {};
+      if (productsData) {
+        productsData.forEach(product => {
+          if (!productsByUser[product.user_id]) {
+            productsByUser[product.user_id] = [];
+          }
+          productsByUser[product.user_id].push(product);
+        });
+      }
+
+      const transformedData = usersData
+        .map((user) => {
+          const userProducts = productsByUser[user.user_id] || [];
+
+          // Skip users with no published products
+          if (userProducts.length === 0) {
+            return null;
+          }
+
           // Get up to 3 product images for gallery
-          const gallery = creator.products
-            ?.slice(0, 3)
+          const gallery = userProducts
+            .slice(0, 3)
             .map(product => ({
               image: product.image_url || "/images/content/product-pic-1.jpg",
               image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
-            })) || [];
+            }));
 
           return {
-            id: creator.id,
-            name: creator.name || "Unknown Creator",
-            avatar: creator.avatar_url || null,
-            products: creator.products?.length || 0,
-            followers: creator.followers || 0,
+            id: user.user_id,
+            name: user.display_name || "Anonymous User",
+            avatar: user.avatar_url || null,
+            products: userProducts.length,
+            followers: 0, // Can be implemented with a followers table later
             gallery: gallery,
             message: true,
           };
-        }) || [];
+        })
+        .filter(Boolean); // Remove null entries
 
-        if (pageNum === 1) {
-          setFollowers(transformedData);
-        } else {
-          setFollowers(prev => [...prev, ...transformedData]);
-        }
-
-        setHasMore(transformedData.length === ITEMS_PER_PAGE);
+      if (pageNum === 1) {
+        setFollowers(transformedData);
+      } else {
+        setFollowers(prev => [...prev, ...transformedData]);
       }
+
+      setHasMore(transformedData.length === ITEMS_PER_PAGE);
     } catch (err) {
       setError(err.message || "An unexpected error occurred");
       console.error("Error fetching followers:", err);
@@ -183,46 +224,10 @@ const Shop = () => {
 
   const fetchFollowing = async (pageNum) => {
     try {
-      // For "Following" tab - get creators that the user follows
-      const { data, error } = await getFollowedCreators();
-
-      if (error) {
-        setError(error.message || "Failed to fetch following");
-        console.error("Error fetching following:", error);
-      } else {
-        const transformedData = data?.map((creator) => {
-          // Get up to 3 product images for gallery
-          const gallery = creator.products
-            ?.slice(0, 3)
-            .map(product => ({
-              image: product.image_url || "/images/content/product-pic-1.jpg",
-              image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
-            })) || [];
-
-          return {
-            id: creator.id,
-            name: creator.name || "Unknown Creator",
-            avatar: creator.avatar_url || null,
-            products: creator.products?.length || 0,
-            followers: creator.followers || 0,
-            gallery: gallery,
-            message: true,
-          };
-        }) || [];
-
-        // Paginate the data manually since getFollowedCreators returns all
-        const startIndex = (pageNum - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        const paginatedData = transformedData.slice(startIndex, endIndex);
-
-        if (pageNum === 1) {
-          setFollowing(paginatedData);
-        } else {
-          setFollowing(prev => [...prev, ...paginatedData]);
-        }
-
-        setHasMore(endIndex < transformedData.length);
-      }
+      // For now, Following tab shows empty state
+      // This can be implemented later with a user_follows table
+      setFollowing([]);
+      setHasMore(false);
     } catch (err) {
       setError(err.message || "An unexpected error occurred");
       console.error("Error fetching following:", err);
