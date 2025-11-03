@@ -9,7 +9,7 @@ import Market from "./Market";
 import Product from "../../components/Product";
 import Loader from "../../components/Loader";
 import Panel from "./Panel";
-import { getProductsByStatus, searchProducts } from "../../services/productService";
+import { getProductsByStatus, searchProducts, deleteProduct, updateProduct } from "../../services/productService";
 
 const sorting = ["list", "grid"];
 
@@ -113,6 +113,52 @@ const Released = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (selectedFilters.length === 0 || !window.confirm(`Are you sure you want to delete ${selectedFilters.length} ${selectedFilters.length === 1 ? 'product' : 'products'}?`)) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Delete all selected products
+      await Promise.all(selectedFilters.map(id => deleteProduct(id)));
+
+      // Clear selection
+      setSelectedFilters([]);
+
+      // Refresh the product list
+      await fetchPublishedProducts();
+    } catch (err) {
+      setError(err.message || "Failed to delete products");
+      console.error("Error deleting products:", err);
+      setLoading(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (selectedFilters.length === 0) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Update status to 'draft' for all selected products
+      await Promise.all(
+        selectedFilters.map(id => updateProduct(id, { status: 'draft' }))
+      );
+
+      // Clear selection
+      setSelectedFilters([]);
+
+      // Refresh the product list
+      await fetchPublishedProducts();
+    } catch (err) {
+      setError(err.message || "Failed to unpublish products");
+      console.error("Error unpublishing products:", err);
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Card
@@ -194,7 +240,12 @@ const Released = () => {
           )}
         </div>
       </Card>
-      <Panel />
+      <Panel
+        selectedCount={selectedFilters.length}
+        onDelete={handleDelete}
+        onUnpublish={handleUnpublish}
+        visible={activeIndex === 1}
+      />
     </>
   );
 };
