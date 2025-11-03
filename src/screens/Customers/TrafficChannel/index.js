@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./TrafficChannel.module.sass";
 import cn from "classnames";
 import Card from "../../../components/Card";
@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import useDarkMode from "use-dark-mode";
+import { getTrafficSourcesData } from "../../../services/analyticsService";
 
 const intervals = ["Last 7 days", "This month", "All time"];
 
@@ -39,68 +40,40 @@ const legend = [
   },
 ];
 
-const data = [
-  {
-    name: "22",
-    direct: 22,
-    search: 3,
-    market: 4,
-    "social media": 8,
-    other: 5,
-  },
-  {
-    name: "23",
-    direct: 12,
-    search: 8,
-    market: 5,
-    "social media": 2,
-    other: 10,
-  },
-  {
-    name: "24",
-    direct: 18,
-    search: 4,
-    market: 9,
-    "social media": 4,
-    other: 7,
-  },
-  {
-    name: "25",
-    direct: 10,
-    search: 10,
-    market: 5,
-    "social media": 5,
-    other: 2,
-  },
-  {
-    name: "26",
-    direct: 21,
-    search: 5,
-    market: 4,
-    "social media": 8,
-    other: 5,
-  },
-  {
-    name: "27",
-    direct: 17,
-    search: 8,
-    market: 4,
-    "social media": 8,
-    other: 12,
-  },
-  {
-    name: "28",
-    direct: 12,
-    search: 8,
-    market: 5,
-    "social media": 2,
-    other: 10,
-  },
-];
-
 const TrafficChannel = ({ className }) => {
   const darkMode = useDarkMode(false);
   const [sorting, setSorting] = useState(intervals[0]);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTrafficData();
+  }, [sorting]);
+
+  const fetchTrafficData = async () => {
+    setLoading(true);
+    try {
+      // Map interval to days
+      let days = 7;
+      if (sorting === "This month") days = 30;
+      if (sorting === "All time") days = 365;
+
+      const { data: trafficData, error } = await getTrafficSourcesData(days);
+
+      if (!error && trafficData) {
+        setData(trafficData);
+      } else {
+        console.error('Error fetching traffic data:', error);
+        // Set empty data on error
+        setData([]);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Card

@@ -40,12 +40,14 @@ const Released = () => {
           image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
           status: product.status === "published",
           price: product.price,
-          sales: product.stock_quantity || 0,
-          balance: 0,
-          views: 0,
-          viewsPercent: 0,
-          likesPercent: 0,
-          likes: 0,
+          sales: product.sales_count || 0,
+          balance: (product.sales_count || 0) * (product.price || 0) * 0.15, // 15% profit margin example
+          views: product.view_count || 0,
+          viewsPercent: `${Math.min(((product.view_count || 0) / 10000) * 100, 100)}%`,
+          likesPercent: `${Math.min(((product.likes_count || 0) / 1000) * 100, 100)}%`,
+          likes: product.likes_count || 0,
+          ratingValue: product.average_rating || null,
+          ratingCounter: product.rating_count || 0,
         })) || [];
         setProducts(transformedData);
       }
@@ -81,12 +83,14 @@ const Released = () => {
           image2x: product.image_url || "/images/content/product-pic-1@2x.jpg",
           status: product.status === "published",
           price: product.price,
-          sales: product.stock_quantity || 0,
-          balance: 0,
-          views: 0,
-          viewsPercent: 0,
-          likesPercent: 0,
-          likes: 0,
+          sales: product.sales_count || 0,
+          balance: (product.sales_count || 0) * (product.price || 0) * 0.15,
+          views: product.view_count || 0,
+          viewsPercent: `${Math.min(((product.view_count || 0) / 10000) * 100, 100)}%`,
+          likesPercent: `${Math.min(((product.likes_count || 0) / 1000) * 100, 100)}%`,
+          likes: product.likes_count || 0,
+          ratingValue: product.average_rating || null,
+          ratingCounter: product.rating_count || 0,
         }));
         setProducts(transformedData);
       }

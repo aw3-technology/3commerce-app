@@ -1,20 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Table.module.sass";
 import cn from "classnames";
 import Checkbox from "../../../components/Checkbox";
 import Loader from "../../../components/Loader";
 import Row from "./Row";
 
-const Table = ({ items }) => {
+const Table = ({ items, loading, onLoadMore, selectedComments, setSelectedComments }) => {
   const [chooseAll, setСhooseAll] = useState(false);
 
-  const [selectedFilters, setSelectedFilters] = useState([]);
+  // Update chooseAll checkbox based on selections
+  useEffect(() => {
+    if (selectedComments.length === items.length && items.length > 0) {
+      setСhooseAll(true);
+    } else {
+      setСhooseAll(false);
+    }
+  }, [selectedComments, items]);
 
   const handleChange = (id) => {
-    if (selectedFilters.includes(id)) {
-      setSelectedFilters(selectedFilters.filter((x) => x !== id));
+    if (selectedComments.includes(id)) {
+      setSelectedComments(selectedComments.filter((x) => x !== id));
     } else {
-      setSelectedFilters((selectedFilters) => [...selectedFilters, id]);
+      setSelectedComments((selectedComments) => [...selectedComments, id]);
+    }
+  };
+
+  const handleChooseAll = () => {
+    if (chooseAll) {
+      setSelectedComments([]);
+    } else {
+      setSelectedComments(items.map(item => item.id));
     }
   };
 
@@ -26,25 +41,37 @@ const Table = ({ items }) => {
             <Checkbox
               className={styles.checkbox}
               value={chooseAll}
-              onChange={() => setСhooseAll(!chooseAll)}
+              onChange={handleChooseAll}
             />
           </div>
           <div className={styles.col}>Comments</div>
           <div className={styles.col}>Products</div>
         </div>
-        {items.map((x, index) => (
-          <Row
-            item={x}
-            key={index}
-            index={index}
-            value={selectedFilters.includes(x.id)}
-            onChange={() => handleChange(x.id)}
-          />
-        ))}
+        {loading && items.length === 0 ? (
+          <div className={styles.loadingContainer}>
+            <Loader />
+          </div>
+        ) : items.length === 0 ? (
+          <div className={styles.empty}>No comments found</div>
+        ) : (
+          items.map((x, index) => (
+            <Row
+              item={x}
+              key={x.id}
+              index={index}
+              value={selectedComments.includes(x.id)}
+              onChange={() => handleChange(x.id)}
+            />
+          ))
+        )}
       </div>
       <div className={styles.foot}>
-        <button className={cn("button-stroke button-small", styles.button)}>
-          <Loader className={styles.loader} />
+        <button
+          className={cn("button-stroke button-small", styles.button)}
+          onClick={onLoadMore}
+          disabled={loading}
+        >
+          {loading && <Loader className={styles.loader} />}
           <span>Load more</span>
         </button>
       </div>

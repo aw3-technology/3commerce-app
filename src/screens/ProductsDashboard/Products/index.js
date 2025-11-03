@@ -5,48 +5,9 @@ import Card from "../../../components/Card";
 import Form from "../../../components/Form";
 import Dropdown from "../../../components/Dropdown";
 import Market from "./Market";
-import Table from "./Table";
-
-// data
-import { traffic } from "../../../mocks/traffic";
-import { viewers } from "../../../mocks/viewers";
 
 // services
 import { getAllProducts, searchProducts } from "../../../services/productService";
-
-const indicatorsTraffic = [
-  {
-    title: "Market",
-    color: "#FFBC99",
-  },
-  {
-    title: "Social media",
-    color: "#CABDFF",
-  },
-  {
-    title: "Direct",
-    color: "#B5E4CA",
-  },
-  {
-    title: "UI8",
-    color: "#B1E5FC",
-  },
-  {
-    title: "Others",
-    color: "#FFD88D",
-  },
-];
-
-const indicatorsViewers = [
-  {
-    title: "Followers",
-    color: "#B5E4CA",
-  },
-  {
-    title: "Others",
-    color: "#CABDFF",
-  },
-];
 
 const Products = () => {
   const navigation = ["Market", "Traffic sources", "Viewers"];
@@ -208,14 +169,30 @@ const Products = () => {
           <div className={styles.wrapper}>
             {activeTab === navigation[0] && <Market items={products} />}
             {activeTab === navigation[1] && (
-              <Table
-                title="Traffic source"
-                items={traffic}
-                legend={indicatorsTraffic}
-              />
+              <div style={{ padding: "40px", textAlign: "center", color: "#6F767E" }}>
+                <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
+                  Traffic Sources Analytics
+                </div>
+                <div style={{ fontSize: "14px", marginBottom: "20px" }}>
+                  Track where your product views are coming from (Market, Social Media, Direct, etc.)
+                </div>
+                <div style={{ fontSize: "12px", padding: "12px 20px", background: "#F4F5F6", borderRadius: "8px", display: "inline-block" }}>
+                  Analytics tracking will be available soon
+                </div>
+              </div>
             )}
             {activeTab === navigation[2] && (
-              <Table title="Viewers" items={viewers} legend={indicatorsViewers} />
+              <div style={{ padding: "40px", textAlign: "center", color: "#6F767E" }}>
+                <div style={{ fontSize: "18px", fontWeight: "600", marginBottom: "12px" }}>
+                  Viewer Analytics
+                </div>
+                <div style={{ fontSize: "14px", marginBottom: "20px" }}>
+                  See who is viewing your products (Followers vs. Others)
+                </div>
+                <div style={{ fontSize: "12px", padding: "12px 20px", background: "#F4F5F6", borderRadius: "8px", display: "inline-block" }}>
+                  Analytics tracking will be available soon
+                </div>
+              </div>
             )}
           </div>
         )}
