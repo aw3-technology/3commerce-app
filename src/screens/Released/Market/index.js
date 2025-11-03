@@ -4,6 +4,7 @@ import styles from "./Market.module.sass";
 import cn from "classnames";
 import Checkbox from "../../../components/Checkbox";
 import Loader from "../../../components/Loader";
+import Icon from "../../../components/Icon";
 import Row from "./Row";
 
 const Market = ({ items = [] }) => {
@@ -48,10 +49,17 @@ const Market = ({ items = [] }) => {
           ))
         ) : (
           <div className={styles.empty}>
-            <p>No published products yet</p>
-            <div style={{ fontSize: "14px", marginTop: "8px" }}>
-              Start by <Link to="/products/add">creating your first product</Link>
+            <div className={styles.emptyIcon}>
+              <Icon name="shopping-bag" size="48" />
             </div>
+            <div className={styles.emptyTitle}>No published products yet</div>
+            <div className={styles.emptyText}>
+              You haven't published any products. Start by creating your first product and publishing it.
+            </div>
+            <Link to="/products/add" className={cn("button", styles.emptyButton)}>
+              <Icon name="add" size="20" />
+              <span>Create Product</span>
+            </Link>
           </div>
         )}
       </div>

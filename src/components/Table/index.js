@@ -3,6 +3,7 @@ import styles from "./Table.module.sass";
 import cn from "classnames";
 import Checkbox from "../Checkbox";
 import Loader from "../Loader";
+import Icon from "../Icon";
 import Row from "./Row";
 
 const Table = ({
@@ -58,8 +59,10 @@ const Table = ({
           <div className={styles.col}>{title}</div>
         </div>
         {items.length === 0 ? (
-          <div className={styles.empty}>
-            <div className={styles.emptyText}>No products found</div>
+          <div className={styles.emptyState}>
+            <Icon name="folder" size="48" className={styles.emptyIcon} />
+            <div className={styles.emptyTitle}>No products found</div>
+            <div className={styles.emptyHint}>Create your first product to get started</div>
           </div>
         ) : (
           items.map((x, index) => (
